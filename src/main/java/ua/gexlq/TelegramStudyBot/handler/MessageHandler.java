@@ -8,7 +8,11 @@ public class MessageHandler {
 
 		Locale current = new Locale(language);
 		ResourceBundle rb = ResourceBundle.getBundle("messages", current);
-
+		
+		if(!rb.containsKey(messageCode)) {
+			return null;
+		}
+		
 		return rb.getString(messageCode);
 	}
 }

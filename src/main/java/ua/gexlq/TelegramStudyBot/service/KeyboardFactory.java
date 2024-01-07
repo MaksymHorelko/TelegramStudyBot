@@ -10,13 +10,15 @@ import java.util.List;
 
 public class KeyboardFactory {
 
+	// BACK BUTTON
 	public static KeyboardRow createBackMenuButton(String locale) {
 		KeyboardRow backButton = new KeyboardRow();
 		backButton.add(MessageHandler.getMessage("menu.back", locale));
 
 		return backButton;
 	}
-
+	
+	// MAIN MENU
 	public static ReplyKeyboardMarkup createMainMenuKeyboard(String locale) {
 		ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
 		keyboardMarkup.setSelective(true);
@@ -44,6 +46,7 @@ public class KeyboardFactory {
 		return keyboardMarkup;
 	}
 
+	// WORK MENU
 	public static ReplyKeyboardMarkup createWorkMenuKeyboard(String locale) {
 		ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
 		keyboardMarkup.setSelective(true);
@@ -54,13 +57,9 @@ public class KeyboardFactory {
 
 		KeyboardRow row1 = new KeyboardRow();
 		row1.add(MessageHandler.getMessage("menu.works.subject", locale));
-
-		KeyboardRow row2 = new KeyboardRow();
-		row2.add(MessageHandler.getMessage("menu.works.upload", locale));
-		row2.add(MessageHandler.getMessage("menu.works.view", locale));
+		row1.add(MessageHandler.getMessage("menu.works.view", locale));
 
 		keyboard.add(row1);
-		keyboard.add(row2);
 		keyboard.add(createBackMenuButton(locale));
 
 		keyboardMarkup.setKeyboard(keyboard);
@@ -68,6 +67,7 @@ public class KeyboardFactory {
 		return keyboardMarkup;
 	}
 
+	// HELP MENU
 	public static ReplyKeyboardMarkup createHelpMenuKeyboard(String locale) {
 		ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
 		keyboardMarkup.setSelective(true);
@@ -93,6 +93,7 @@ public class KeyboardFactory {
 		return keyboardMarkup;
 	}
 
+	// SETTINGS MENU
 	public static ReplyKeyboardMarkup createSettingsMenuKeyboard(String locale) {
 		ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
 		keyboardMarkup.setSelective(true);
@@ -114,7 +115,30 @@ public class KeyboardFactory {
 		return keyboardMarkup;
 	}
 
+	// MATERIALS MENU
 	public static ReplyKeyboardMarkup createMaterialsMenuKeyboard(String locale) {
+		ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
+		keyboardMarkup.setSelective(true);
+		keyboardMarkup.setResizeKeyboard(true);
+		keyboardMarkup.setOneTimeKeyboard(false);
+
+		List<KeyboardRow> keyboard = new ArrayList<>();
+
+		KeyboardRow row1 = new KeyboardRow();
+		row1.add(MessageHandler.getMessage("menu.materials.lectures", locale));
+		row1.add(MessageHandler.getMessage("menu.materials.semester", locale));
+		row1.add(MessageHandler.getMessage("menu.materials.literature", locale));
+
+		keyboard.add(row1);
+		keyboard.add(createBackMenuButton(locale));
+
+		keyboardMarkup.setKeyboard(keyboard);
+
+		return keyboardMarkup;
+	}
+	
+	// MATERIALS MENU
+	public static ReplyKeyboardMarkup createPickFacultyMenuKeyboard(String locale) {
 		ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
 		keyboardMarkup.setSelective(true);
 		keyboardMarkup.setResizeKeyboard(true);
