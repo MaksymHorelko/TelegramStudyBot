@@ -79,13 +79,12 @@ public class TelegramBot extends TelegramLongPollingBot {
 
 			CallbackQuery callBackQuery = update.getCallbackQuery();
 
-			String callBackData = update.getCallbackQuery().getData();
+			String callBackData = callBackQuery.getData();
 
 			long chatId = callBackQuery.getMessage().getChatId();
 			long messageId = callBackQuery.getMessage().getMessageId();
 
 			String language = service.getUserLanguage(chatId);
-
 			UserState userState = service.getUserState(chatId);
 
 			EditMessageText message = new EditMessageText();
@@ -208,7 +207,7 @@ public class TelegramBot extends TelegramLongPollingBot {
 		try {
 			execute(message);
 		} catch (Exception e) {
-
+			Logger.logError(e);
 		}
 	}
 

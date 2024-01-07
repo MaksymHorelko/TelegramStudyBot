@@ -103,10 +103,10 @@ public class InlineKeyboardFactory {
 		return createPage(subjects, subjects, language);
 	}
 
-	public static InlineKeyboardMarkup createWorkOptionPage() {
+	public static InlineKeyboardMarkup createWorkOptionPage(String language) {
 		List<String> options = Arrays.asList("menu.works.upload", "menu.works.download");
 		
-		return null;
+		return createPage(options, options, language);
 	}
 	
 	public static InlineKeyboardMarkup createChangeLanguagePage(String language) {

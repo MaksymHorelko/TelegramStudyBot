@@ -31,12 +31,13 @@ public class MenuHandler {
 		message.setChatId(String.valueOf(chatId));
 		return message;
 	}
-	
+
 	private SendMessage pickSubject(long chatId, SendMessage message, String language) {
 		message.setText(MessageHandler.getMessage("message.works.subject", language));
-		
-		message.setReplyMarkup(InlineKeyboardFactory.createSubjectPage(service.getUserFaculty(chatId), service.getUserSpecialization(chatId), service.getUserSemester(chatId), language));
-		
+
+		message.setReplyMarkup(InlineKeyboardFactory.createSubjectPage(service.getUserFaculty(chatId),
+				service.getUserSpecialization(chatId), service.getUserSemester(chatId), language));
+
 		return message;
 	}
 
@@ -131,15 +132,15 @@ public class MenuHandler {
 		if (input.equals(MessageHandler.getMessage("menu.works.subject", language))) {
 
 			if (service.isUserFacultySet(chatId)) {
-				
+
 				message.setText(MessageHandler.getMessage("message.work.subject.faculty", language));
 				message.setReplyMarkup(InlineKeyboardFactory.createFacultyPage(language));
-			
+
 			}
 
 			else if (service.isUserSpecializationSet(chatId)) {
 				message.setText(MessageHandler.getMessage("message.work.subject.specialization", language));
-				message.setReplyMarkup(InlineKeyboardFactory.createSpecializationPage(language)); 
+				message.setReplyMarkup(InlineKeyboardFactory.createSpecializationPage(language));
 			}
 
 			else if (service.isUserSemesterSet(chatId)) {
@@ -191,7 +192,10 @@ public class MenuHandler {
 		}
 
 		else if (input.equals(MessageHandler.getMessage("menu.settings.data", language))) {
-			message.setText(MessageHandler.getMessage("message.settings.data", language));
+			message.setText(MessageHandler.getMessage("message.settings.data", language)
+					.replace("{0}", service.getUserFaculty(chatId))
+					.replace("{1}", service.getUserSpecialization(chatId))
+					.replace("{2}", service.getUserSemester(chatId)));
 			message.setReplyMarkup(InlineKeyboardFactory.createChangeDataPage(language));
 		}
 

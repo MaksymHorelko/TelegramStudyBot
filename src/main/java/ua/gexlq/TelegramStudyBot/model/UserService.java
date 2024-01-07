@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import ua.gexlq.TelegramStudyBot.handler.Logger;
-import ua.gexlq.TelegramStudyBot.handler.MessageHandler;
 
 @Component
 public class UserService {
