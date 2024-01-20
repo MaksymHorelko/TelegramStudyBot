@@ -41,11 +41,11 @@ public class User {
 				"nickName = " + nickName + " | " + "firstName = " + firstName + " | " + "lastName = " + lastName + " | "
 				+
 
-				"semester = " + semester + " | " + "faculty  = " + faculty + " | " + "specialization = " + specialization
-				+ " | " +
+				"semester = " + semester + " | " + "faculty  = " + faculty + " | " + "specialization = "
+				+ specialization + " | " +
 
-				"atMenu = " + userState + " | " + "language = " + language + " | " + "registeredAt = "
-				+ registeredAt + "}";
+				"atMenu = " + userState + " | " + "language = " + language + " | " + "registeredAt = " + registeredAt
+				+ "}";
 
 	}
 }

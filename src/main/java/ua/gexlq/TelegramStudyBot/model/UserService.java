@@ -5,14 +5,14 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.Message;
 
 import ua.gexlq.TelegramStudyBot.handler.Logger;
 
 @Component
 public class UserService {
 
-	private String defaultLanguage = "ua";
+	private String defaultLanguage = "uk";
 
 	public enum UserState {
 		MAIN_MENU, WORK_MENU, HELP_MENU, SETTINGS_MENU, MATERIALS_MENU;
@@ -24,38 +24,42 @@ public class UserService {
 	Repository repository;
 
 	public boolean isUserEmpty(long userId) {
-		return repository.findById(userId).isEmpty();
+		User user = repository.findById(userId).get();
+		
+		return user.getFaculty() != null && user.getSpecialization() != null && user.getSemester() != null;
+	}
+
+	public boolean isUserRegister(long userId) {
+		return repository.existsById(userId);
 	}
 
 	public boolean isUserFacultySet(long userId) {
 		User user = repository.findById(userId).get();
 
-		return user.getFaculty() == null;
+		return user.getFaculty() != null;
 	}
 
 	public boolean isUserSemesterSet(long userId) {
 		User user = repository.findById(userId).get();
 
-		return user.getSemester() == null;
+		return user.getSemester() != null;
 	}
 
 	public boolean isUserSpecializationSet(long userId) {
 		User user = repository.findById(userId).get();
 
-		return user.getSpecialization() == null;
+		return user.getSpecialization() != null;
 	}
 
 	public void saveUser(User user) {
 		repository.save(user);
 	}
 
-	public void registerUser(Update update) {
+	public void registerUser(Message message) {
 
-		if (isUserEmpty(update.getMessage().getChatId())) {
+			var chatId = message.getChatId();
 
-			var chatId = update.getMessage().getChatId();
-
-			var chat = update.getMessage().getChat();
+			var chat = message.getChat();
 
 			User user = new User();
 
@@ -74,52 +78,41 @@ public class UserService {
 			Logger.logUser(user);
 
 			saveUser(user);
-		}
 	}
 
-	public void setUserCourse(long userId, String semester) {
-		if (!isUserEmpty(userId)) {
+	public void setUserSemester(long userId, String semester) {
 			User user = repository.findById(userId).get();
 			user.setSemester(semester);
 
 			saveUser(user);
-		}
 	}
 
 	public void setUserFaculty(long userId, String faculty) {
-		if (!isUserEmpty(userId)) {
 			User user = repository.findById(userId).get();
 			user.setFaculty(faculty);
 
 			saveUser(user);
-		}
 	}
 
 	public void setUserSpecialization(long userId, String specialization) {
-		if (!isUserEmpty(userId)) {
 			User user = repository.findById(userId).get();
 			user.setSpecialization(specialization);
 
 			saveUser(user);
-		}
 	}
 
 	public void setUserLanguage(long userId, String locale) {
-		if (!isUserEmpty(userId)) {
 			User user = repository.findById(userId).get();
 			user.setLanguage(locale);
 
 			saveUser(user);
-		}
 	}
 
 	public void setUserState(long userId, UserState state) {
-		if (!isUserEmpty(userId)) {
 			User user = repository.findById(userId).get();
 			user.setUserState(state);
 
 			saveUser(user);
-		}
 	}
 
 	public User getUser(long userId) {

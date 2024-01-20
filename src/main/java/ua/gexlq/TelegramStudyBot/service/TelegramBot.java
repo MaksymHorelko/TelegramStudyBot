@@ -6,11 +6,13 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import ua.gexlq.TelegramStudyBot.config.Config;
 import ua.gexlq.TelegramStudyBot.handler.MessageHandler;
+import ua.gexlq.TelegramStudyBot.handler.RequestHandler;
 import ua.gexlq.TelegramStudyBot.handler.Logger;
 import ua.gexlq.TelegramStudyBot.handler.MenuHandler;
 import ua.gexlq.TelegramStudyBot.model.UserService;
@@ -23,6 +25,9 @@ public class TelegramBot extends TelegramLongPollingBot {
 	private UserService service;
 
 	@Autowired
+	private RequestHandler requestHandler;
+
+	@Autowired
 	private MenuHandler menuHandler;
 
 	private final Config config;
@@ -33,177 +38,203 @@ public class TelegramBot extends TelegramLongPollingBot {
 
 	@Override
 	public void onUpdateReceived(Update update) {
-
 		if (update.hasMessage() && update.getMessage().hasText()) {
+			handleMessage(update.getMessage());
+		} else if (update.hasCallbackQuery()) {
+			handleCallbackQuery(update.getCallbackQuery());
+		}
+	}
 
-			long chatId = update.getMessage().getChatId();
+	private void handleMessage(Message message) {
+		long chatId = message.getChatId();
 
-			if (update.getMessage().getText().equals("/start") && service.isUserEmpty(chatId)) {
-				firstLaunch(update);
+		if (message.getText().equals("/start") && !service.isUserRegister(chatId)) {
+			firstLaunch(message);
+		}
+		
+		UserState userState = service.getUserState(chatId);
+		String language = service.getUserLanguage(chatId);
+
+		switch (userState) {
+
+		case MAIN_MENU:
+			send(menuHandler.mainMenu(message, language));
+			break;
+
+		case WORK_MENU:
+			send(menuHandler.workMenu(message, language));
+			break;
+
+		case HELP_MENU:
+			send(menuHandler.helpMenu(message, language));
+			break;
+
+		case SETTINGS_MENU:
+			SendMessage sendMessage = menuHandler.settingsMenu(message, language);
+
+			if (message.getText().equals(MessageHandler.getMessage("message.settings.language", language))) {
+
 			}
 
-			UserState userState = service.getUserState(chatId);
-			String language = service.getUserLanguage(chatId);
+			send(sendMessage);
+			break;
 
-			switch (userState) {
+		case MATERIALS_MENU:
+			send(menuHandler.materialsMenu(message, language));
+			break;
+		}
+	}
 
-			case MAIN_MENU:
-				send(menuHandler.mainMenu(update, language));
-				break;
+	private void handleCallbackQuery(CallbackQuery callBackQuery) {
+		String callBackData = callBackQuery.getData();
+		long chatId = callBackQuery.getMessage().getChatId();
+		long messageId = callBackQuery.getMessage().getMessageId();
+		String language = service.getUserLanguage(chatId);
+		UserState userState = service.getUserState(chatId);
 
-			case WORK_MENU:
-				send(menuHandler.workMenu(update, language));
-				break;
+		EditMessageText editMessage = new EditMessageText();
+		editMessage.setChatId(String.valueOf(chatId));
+		editMessage.setMessageId((int) messageId);
 
-			case HELP_MENU:
-				send(menuHandler.helpMenu(update, language));
-				break;
+		System.out.println("callBackData = " + callBackData + "\n\n\n\n");
 
-			case SETTINGS_MENU:
-				SendMessage message = menuHandler.settingsMenu(update, language);
+		if (userState.equals(UserState.SETTINGS_MENU) || userState.equals(UserState.WORK_MENU)) {
+			if (ConditionChecker.isCallBackDataIsSubject(callBackData)) {
+				String subject = callBackData.substring(callBackData.indexOf(">") + 1, callBackData.length());
 
-				if (message.getText().equals(MessageHandler.getMessage("message.settings.language", language))) {
+				editMessage.setText(MessageHandler.getMessage("message.pickWorkType", language));
+				editMessage.setReplyMarkup(InlineKeyboardFactory.createWorkTypePage(subject, language));
+			}
+
+			else if (ConditionChecker.isCallBackDataIsWorkType(callBackData)) {
+				String subject = callBackData.substring(callBackData.indexOf(">") + 1, callBackData.lastIndexOf("."));
+				String workType = callBackData.substring(callBackData.lastIndexOf(".") + 1, callBackData.length());
+
+				editMessage.setText(MessageHandler.getMessage("message.pickWork", language));
+				editMessage.setReplyMarkup(InlineKeyboardFactory.createPickWorkPage(subject, workType, language));
+			}
+
+			else if (ConditionChecker.isCallBackDataIsWork(callBackData)) {
+				String selectedWork = callBackData.substring(callBackData.indexOf(">") + 1, callBackData.length());
+
+				editMessage.setText(MessageHandler.getMessage("message.pickOption", language));
+				editMessage.setReplyMarkup(InlineKeyboardFactory.createWorkOptionPage(selectedWork, language));
+			}
+
+			//
+			//
+
+			else if (ConditionChecker.isCallBackDataIsUpload(callBackData)) {
+
+			}
+
+			else if (ConditionChecker.isCallBackDataIsDownload(callBackData)) {
+
+			}
+
+			else if (ConditionChecker.isCallBackDataIsBack(callBackData)) {
+
+			}
+
+			//
+			//
+
+			else if (ConditionChecker.isCallBackDataIsFaculty(callBackData)) {
+
+				service.setUserFaculty(chatId,
+						callBackData.substring(callBackData.indexOf(">") + 1, callBackData.length()));
+
+				if (!service.isUserSpecializationSet(chatId) && userState.equals(UserState.WORK_MENU)) {
+					setSpecialization(editMessage, chatId, language);
+				}
+
+				else {
+					editMessage.setText(MessageHandler.getMessage("message.sucess", language));
+				}
+
+			}
+
+			else if (ConditionChecker.isCallBackDataIsSpecialization(callBackData)) {
+				String specialization = callBackData.substring(callBackData.indexOf(">") + 1, callBackData.length());
+				service.setUserSpecialization(chatId, specialization);
+
+				if (!service.isUserSemesterSet(chatId) && userState.equals(UserState.WORK_MENU)) {
+					editMessage.setText(MessageHandler.getMessage("message.pickSemester", language));
+					editMessage.setReplyMarkup(InlineKeyboardFactory.createSemesterPage(language));
+				}
+
+				else {
+					editMessage.setText(MessageHandler.getMessage("message.sucess", language));
+				}
+
+			}
+
+			else if (ConditionChecker.isCallBackDataIsSemester(callBackData)) {
+				String semester = callBackData.substring(callBackData.indexOf(">") + 1, callBackData.length());
+				service.setUserSemester(chatId, semester);
+
+				if (userState.equals(UserState.WORK_MENU)) {
+					editMessage.setText(MessageHandler.getMessage("message.isCorrect", language) + "\n\n"
+							+ MessageHandler.getMessage("message.works.subject", language));
+					editMessage.setReplyMarkup(InlineKeyboardFactory.createSubjectPage(service.getUserFaculty(chatId),
+							service.getUserSpecialization(chatId), service.getUserSemester(chatId), language));
+				} else
+					editMessage.setText(MessageHandler.getMessage("message.sucess", language));
+			}
+
+			else if (userState.equals(UserState.SETTINGS_MENU)) {
+
+				if (callBackData.equals("changeFaculty")) {
+
+					editMessage.setText(MessageHandler.getMessage("message.pickFaculty", language));
+					editMessage.setReplyMarkup(InlineKeyboardFactory.createFacultyPage(language));
 
 				}
 
-				send(message);
-				break;
+				else if (callBackData.equals("changeSpecialization")) {
+					setSpecialization(editMessage, chatId, language);
+				}
 
-			case MATERIALS_MENU:
-				send(menuHandler.materialsMenu(update, language));
-				break;
+				else if (callBackData.equals("changeSemester")) {
+
+					editMessage.setText(MessageHandler.getMessage("message.pickSemester", language));
+					editMessage.setReplyMarkup(InlineKeyboardFactory.createSemesterPage(language));
+
+				}
+
+				else if (ConditionChecker.isChangeLanguage(callBackData)) {
+
+					String newLanguage = MessageHandler.getMessage(callBackData + "." + "code", language);
+
+					service.setUserLanguage(chatId, newLanguage);
+
+					editMessage.setText(MessageHandler.getMessage("message.sucess", language));
+				}
+
 			}
+
 		}
 
-		else if (update.hasCallbackQuery()) {
+		else {
 
-			CallbackQuery callBackQuery = update.getCallbackQuery();
-
-			String callBackData = callBackQuery.getData();
-
-			long chatId = callBackQuery.getMessage().getChatId();
-			long messageId = callBackQuery.getMessage().getMessageId();
-
-			String language = service.getUserLanguage(chatId);
-			UserState userState = service.getUserState(chatId);
-
-			EditMessageText message = new EditMessageText();
-			message.setChatId(String.valueOf(chatId));
-
-			message.setMessageId((int) messageId);
-
-			if (userState.equals(UserState.SETTINGS_MENU) || userState.equals(UserState.WORK_MENU)) {
-
-				if (isCallBackDataIsFaculty(callBackData)) {
-
-					service.setUserFaculty(chatId, callBackData.substring(8));
-
-					if (service.isUserSpecializationSet(chatId) && userState.equals(UserState.WORK_MENU)) {
-						message.setText(MessageHandler.getMessage("message.work.subject.specialization", language));
-						message.setReplyMarkup(InlineKeyboardFactory.createSpecializationPage(language));
-					}
-
-					else {
-						message.setText(MessageHandler.getMessage("message.sucess", language));
-					}
-
-				}
-
-				else if (isCallBackDataIsSpecialization(callBackData)) {
-
-					service.setUserSpecialization(chatId,
-							callBackData.substring(16 + service.getUserFaculty(chatId).length()));
-
-					if (service.isUserSemesterSet(chatId) && userState.equals(UserState.WORK_MENU)) {
-						message.setText(MessageHandler.getMessage("message.work.subject.semester", language));
-						message.setReplyMarkup(InlineKeyboardFactory.createSemesterPage(language));
-					}
-
-					else {
-						message.setText(MessageHandler.getMessage("message.sucess", language));
-					}
-
-				}
-
-				else if (isCallBackDataIsCourse(callBackData)) {
-
-					service.setUserCourse(chatId, callBackData.substring(9));
-
-					message.setText(MessageHandler.getMessage("message.sucess", language));
-
-				}
-
-				else if (userState.equals(UserState.SETTINGS_MENU)) {
-
-					if (callBackData.equals("faculty")) {
-
-						message.setText(MessageHandler.getMessage("message.work.subject.faculty", language));
-						message.setReplyMarkup(InlineKeyboardFactory.createFacultyPage(language));
-
-					}
-
-					else if (callBackData.equals("semester")) {
-
-						message.setText(MessageHandler.getMessage("message.work.subject.semester", language));
-						message.setReplyMarkup(InlineKeyboardFactory.createSemesterPage(language));
-
-					}
-
-					else if (callBackData.equals("specialization")) {
-
-						message.setText(MessageHandler.getMessage("message.work.subject.specialization", language));
-						message.setReplyMarkup(InlineKeyboardFactory.createSpecializationPage(language));
-
-					}
-
-					else if (isChangeLanguage(callBackData)) {
-
-						String newLanguage = MessageHandler.getMessage("code." + callBackData, language);
-
-						service.setUserLanguage(chatId, newLanguage);
-
-						message.setText(MessageHandler.getMessage("message.sucess", language));
-					}
-
-				}
-
-			}
-
-			else {
-
-				message.setText(MessageHandler.getMessage("message.failed", language));
-			}
-
-			sendEmessage(message);
+			editMessage.setText(MessageHandler.getMessage("message.failed", language));
 		}
 
+		if (!editMessage.getText().isEmpty())
+			sendEditMessage(editMessage);
 	}
 
-	private boolean isChangeLanguage(String callBackData) {
-
-		return callBackData.equals("ukrainian") || callBackData.equals("russian") || callBackData.equals("english");
+	private void setSpecialization(EditMessageText editMessage, long chatId, String language) {
+		String faculty = service.getUserFaculty(chatId);
+		editMessage.setText(MessageHandler.getMessage("message.pickSpecialization", language));
+		editMessage.setReplyMarkup(InlineKeyboardFactory.createSpecializationPage(faculty, language));
 	}
 
-	private boolean isCallBackDataIsFaculty(String callBackData) {
-
-		return callBackData.contains("faculty.");
+	private void firstLaunch(Message message) {
+		service.registerUser(message);
 	}
 
-	private boolean isCallBackDataIsSpecialization(String callBackData) {
-
-		return callBackData.contains("specialization.");
-	}
-
-	private boolean isCallBackDataIsCourse(String callBackData) {
-
-		return callBackData.contains("semester.");
-	}
-
-	private void firstLaunch(Update update) {
-		service.registerUser(update);
-	}
-
-	private void sendEmessage(EditMessageText message) {
+	private void sendEditMessage(EditMessageText message) {
 		try {
 			execute(message);
 		} catch (Exception e) {

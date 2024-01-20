@@ -2,7 +2,7 @@ package ua.gexlq.TelegramStudyBot.handler;
 
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.Message;
 
 import ua.gexlq.TelegramStudyBot.model.UserService;
 import ua.gexlq.TelegramStudyBot.model.UserService.UserState;
@@ -18,234 +18,230 @@ public class MenuHandler {
 		this.service = service;
 	}
 
-	private long getUserId(Update update) {
-		return update.getMessage().getChatId();
+	private long getUserId(Message message) {
+		return message.getChatId();
 	}
 
-	private String getUserMessage(Update update) {
-		return update.getMessage().getText();
+	private String getUserMessage(Message message) {
+		return message.getText();
 	}
 
 	private SendMessage setMessage(long chatId) {
-		SendMessage message = new SendMessage();
-		message.setChatId(String.valueOf(chatId));
-		return message;
+		SendMessage sendMessage = new SendMessage();
+		sendMessage.setChatId(String.valueOf(chatId));
+		return sendMessage;
 	}
 
-	private SendMessage pickSubject(long chatId, SendMessage message, String language) {
-		message.setText(MessageHandler.getMessage("message.works.subject", language));
+	private SendMessage pickSubject(long chatId, SendMessage sendMessage, String language) {
+		sendMessage.setText(MessageHandler.getMessage("message.works.subject", language));
 
-		message.setReplyMarkup(InlineKeyboardFactory.createSubjectPage(service.getUserFaculty(chatId),
+		sendMessage.setReplyMarkup(InlineKeyboardFactory.createSubjectPage(service.getUserFaculty(chatId),
 				service.getUserSpecialization(chatId), service.getUserSemester(chatId), language));
 
-		return message;
+		return sendMessage;
 	}
 
-	public SendMessage mainMenu(Update update, String language) {
+	public SendMessage mainMenu(Message message, String language) {
 
-		long chatId = getUserId(update);
-		String input = getUserMessage(update);
+		long chatId = getUserId(message);
+		String input = getUserMessage(message);
 
-		SendMessage message = setMessage(chatId);
+		SendMessage sendMessage = setMessage(chatId);
 
 		if (input.equals("/start")) {
-			message.setText(MessageHandler.getMessage("message.welcome", language));
-			message.setReplyMarkup(KeyboardFactory.createMainMenuKeyboard(language));
+			sendMessage.setText(MessageHandler.getMessage("message.welcome", language));
+			sendMessage.setReplyMarkup(KeyboardFactory.createMainMenuKeyboard(language));
 		}
 
 		else if (input.equals(MessageHandler.getMessage("menu.works", language))) {
-			message.setText(MessageHandler.getMessage("message.works", language));
-			message.setReplyMarkup(KeyboardFactory.createWorkMenuKeyboard(language));
+			sendMessage.setText(MessageHandler.getMessage("message.works", language));
+			sendMessage.setReplyMarkup(KeyboardFactory.createWorkMenuKeyboard(language));
 			service.setUserState(chatId, UserState.WORK_MENU);
 		}
 
 		else if (input.equals(MessageHandler.getMessage("menu.materials", language))) {
-			message.setText(MessageHandler.getMessage("message.materials", language));
-			message.setReplyMarkup(KeyboardFactory.createMaterialsMenuKeyboard(language));
+			sendMessage.setText(MessageHandler.getMessage("message.materials", language));
+			sendMessage.setReplyMarkup(KeyboardFactory.createMaterialsMenuKeyboard(language));
 			service.setUserState(chatId, UserState.MATERIALS_MENU);
 		}
 
 		else if (input.equals(MessageHandler.getMessage("menu.help", language))) {
-			message.setText(MessageHandler.getMessage("message.help", language));
-			message.setReplyMarkup(KeyboardFactory.createHelpMenuKeyboard(language));
+			sendMessage.setText(MessageHandler.getMessage("message.help", language));
+			sendMessage.setReplyMarkup(KeyboardFactory.createHelpMenuKeyboard(language));
 			service.setUserState(chatId, UserState.HELP_MENU);
 		}
 
 		else if (input.equals(MessageHandler.getMessage("menu.settings", language))) {
-			message.setText(MessageHandler.getMessage("message.settings", language));
-			message.setReplyMarkup(KeyboardFactory.createSettingsMenuKeyboard(language));
+			sendMessage.setText(MessageHandler.getMessage("message.settings", language));
+			sendMessage.setReplyMarkup(KeyboardFactory.createSettingsMenuKeyboard(service.isUserEmpty(chatId), language));
 			service.setUserState(chatId, UserState.SETTINGS_MENU);
 		}
 
 		else {
-			message.setText(MessageHandler.getMessage("message.unknownCommand", language));
-			message.setReplyMarkup(KeyboardFactory.createMainMenuKeyboard(language));
+			sendMessage.setText(MessageHandler.getMessage("message.unknownCommand", language));
+			sendMessage.setReplyMarkup(KeyboardFactory.createMainMenuKeyboard(language));
 		}
 
-		return message;
+		return sendMessage;
 	}
 
-	public SendMessage helpMenu(Update update, String language) {
-		long chatId = getUserId(update);
-		String input = getUserMessage(update);
+	public SendMessage helpMenu(Message message, String language) {
+		long chatId = getUserId(message);
+		String input = getUserMessage(message);
 
-		SendMessage message = setMessage(chatId);
+		SendMessage sendMessage = setMessage(chatId);
 
 		if (input.equals(MessageHandler.getMessage("menu.help.email", language))) {
-			message.setText(MessageHandler.getMessage("message.help.email", language).replace("{0}",
+			sendMessage.setText(MessageHandler.getMessage("message.help.email", language).replace("{0}",
 					MessageHandler.getMessage("email", language)));
 		}
 
 		else if (input.equals(MessageHandler.getMessage("menu.help.chat", language))) {
-			message.setText(MessageHandler.getMessage("message.help.chat", language).replace("{0}",
+			sendMessage.setText(MessageHandler.getMessage("message.help.chat", language).replace("{0}",
 					MessageHandler.getMessage("chatURL", language)));
 		}
 
 		else if (input.equals(MessageHandler.getMessage("menu.help.donate", language))) {
-			message.setText(MessageHandler.getMessage("message.help.donate", language));
+			sendMessage.setText(MessageHandler.getMessage("message.help.donate", language));
 		}
 
 		else if (input.equals(MessageHandler.getMessage("menu.help.commands", language))) {
-			message.setText(MessageHandler.getMessage("message.help.commands", language));
+			sendMessage.setText(MessageHandler.getMessage("message.help.commands", language));
 		}
 
 		else if (input.equals(MessageHandler.getMessage("menu.back", language))) {
-			message.setText(MessageHandler.getMessage("message.stepBackToMainMenu", language));
-			message.setReplyMarkup(KeyboardFactory.createMainMenuKeyboard(language));
+			sendMessage.setText(MessageHandler.getMessage("message.stepBackToMainMenu", language));
+			sendMessage.setReplyMarkup(KeyboardFactory.createMainMenuKeyboard(language));
 			service.setUserState(chatId, UserState.MAIN_MENU);
 		}
 
 		else {
-			message.setText(MessageHandler.getMessage("message.unknownCommand", language));
-			message.setReplyMarkup(KeyboardFactory.createHelpMenuKeyboard(language));
+			sendMessage.setText(MessageHandler.getMessage("message.unknownCommand", language));
+			sendMessage.setReplyMarkup(KeyboardFactory.createHelpMenuKeyboard(language));
 		}
 
-		return message;
+		return sendMessage;
 	}
 
-	public SendMessage workMenu(Update update, String language) {
-		long chatId = getUserId(update);
-		String input = getUserMessage(update);
+	public SendMessage workMenu(Message message, String language) {
+		long chatId = getUserId(message);
+		String input = getUserMessage(message);
 
-		SendMessage message = setMessage(chatId);
+		SendMessage sendMessage = setMessage(chatId);
 
 		if (input.equals(MessageHandler.getMessage("menu.works.subject", language))) {
 
-			if (service.isUserFacultySet(chatId)) {
-
-				message.setText(MessageHandler.getMessage("message.work.subject.faculty", language));
-				message.setReplyMarkup(InlineKeyboardFactory.createFacultyPage(language));
-
+			if (!service.isUserFacultySet(chatId)) {
+				sendMessage.setText(MessageHandler.getMessage("message.pickFaculty", language));
+				sendMessage.setReplyMarkup(InlineKeyboardFactory.createFacultyPage(language));
 			}
 
-			else if (service.isUserSpecializationSet(chatId)) {
-				message.setText(MessageHandler.getMessage("message.work.subject.specialization", language));
-				message.setReplyMarkup(InlineKeyboardFactory.createSpecializationPage(language));
+			else if (!service.isUserSpecializationSet(chatId)) {
+				String faculty = service.getUserFaculty(chatId);
+				sendMessage.setText(MessageHandler.getMessage("message.pickSpecialization", language));
+				sendMessage.setReplyMarkup(InlineKeyboardFactory.createSpecializationPage(faculty, language));
 			}
 
-			else if (service.isUserSemesterSet(chatId)) {
-				message.setText(MessageHandler.getMessage("message.work.subject.semester", language));
-				message.setReplyMarkup(InlineKeyboardFactory.createSemesterPage(language));
+			else if (!service.isUserSemesterSet(chatId)) {
+				sendMessage.setText(MessageHandler.getMessage("message.pickSemester", language));
+				sendMessage.setReplyMarkup(InlineKeyboardFactory.createSemesterPage(language));
 			}
 
 			else {
-				message = pickSubject(chatId, message, language);
+				sendMessage = pickSubject(chatId, sendMessage, language);
 			}
 
 		}
 
-		else if (input.equals(MessageHandler.getMessage("menu.works.upload", language))) {
-			message.setText(MessageHandler.getMessage("message.works.upload", language));
-		}
-
 		else if (input.equals(MessageHandler.getMessage("menu.works.view", language))) {
-			message.setText(MessageHandler.getMessage("message.works.view", language));
+			sendMessage.setText(MessageHandler.getMessage("message.works.viewMyUploadedWorks", language));
 		}
 
 		else if (input.equals(MessageHandler.getMessage("menu.back", language))) {
-			message.setText(MessageHandler.getMessage("message.stepBackToMainMenu", language));
-			message.setReplyMarkup(KeyboardFactory.createMainMenuKeyboard(language));
+			sendMessage.setText(MessageHandler.getMessage("message.stepBackToMainMenu", language));
+			sendMessage.setReplyMarkup(KeyboardFactory.createMainMenuKeyboard(language));
 			service.setUserState(chatId, UserState.MAIN_MENU);
 		}
 
 		else {
-			message.setText(MessageHandler.getMessage("message.unknownCommand", language));
+			sendMessage.setText(MessageHandler.getMessage("message.unknownCommand", language));
 		}
 
-		return message;
+		return sendMessage;
 	}
 
-	public SendMessage settingsMenu(Update update, String language) {
-		long chatId = getUserId(update);
-		String input = getUserMessage(update);
+	public SendMessage settingsMenu(Message message, String language) {
+		long chatId = getUserId(message);
+		String input = getUserMessage(message);
 
-		SendMessage message = setMessage(chatId);
+		SendMessage sendMessage = setMessage(chatId);
 
 		if (input.equals(MessageHandler.getMessage("menu.settings.language", language))) {
-			message.setText(MessageHandler.getMessage("message.settings.language", language));
-			message.setReplyMarkup(InlineKeyboardFactory.createChangeLanguagePage(language));
+			sendMessage.setText(MessageHandler.getMessage("message.settings.language", language));
+			sendMessage.setReplyMarkup(InlineKeyboardFactory.createChangeLanguagePage(language));
 
 		}
 
 		else if (input.equals(MessageHandler.getMessage("menu.settings.notifications", language))) {
-			message.setText(MessageHandler.getMessage("message.settings.notifications", language));
+			sendMessage.setText(MessageHandler.getMessage("message.settings.notifications", language));
 		}
 
 		else if (input.equals(MessageHandler.getMessage("menu.settings.data", language))) {
-			message.setText(MessageHandler.getMessage("message.settings.data", language)
-					.replace("{0}", service.getUserFaculty(chatId))
+			sendMessage.setText(MessageHandler.getMessage("message.settings.data", language)
+					.replace("{0}",
+							MessageHandler.getMessage("faculty" + "." + service.getUserFaculty(chatId), language))
 					.replace("{1}", service.getUserSpecialization(chatId))
 					.replace("{2}", service.getUserSemester(chatId)));
-			message.setReplyMarkup(InlineKeyboardFactory.createChangeDataPage(language));
+			sendMessage.setReplyMarkup(InlineKeyboardFactory.createChangeDataPage(language));
 		}
 
 		else if (input.equals(MessageHandler.getMessage("menu.back", language))) {
-			message.setText(MessageHandler.getMessage("message.stepBackToMainMenu", language));
-			message.setReplyMarkup(KeyboardFactory.createMainMenuKeyboard(language));
+			sendMessage.setText(MessageHandler.getMessage("message.stepBackToMainMenu", language));
+			sendMessage.setReplyMarkup(KeyboardFactory.createMainMenuKeyboard(language));
 			service.setUserState(chatId, UserState.MAIN_MENU);
 		}
 
 		else {
-			message.setText(MessageHandler.getMessage("message.unknownCommand", language));
-			message.setReplyMarkup(KeyboardFactory.createSettingsMenuKeyboard(language));
+			sendMessage.setText(MessageHandler.getMessage("message.unknownCommand", language));
+			sendMessage.setReplyMarkup(KeyboardFactory.createSettingsMenuKeyboard(service.isUserEmpty(chatId), language));
 		}
 
-		return message;
+		return sendMessage;
 	}
 
-	public SendMessage materialsMenu(Update update, String language) {
-		long chatId = getUserId(update);
-		String input = getUserMessage(update);
+	public SendMessage materialsMenu(Message message, String language) {
+		long chatId = getUserId(message);
+		String input = getUserMessage(message);
 
-		SendMessage message = setMessage(chatId);
+		SendMessage sendMessage = setMessage(chatId);
 
 		if (input.equals(MessageHandler.getMessage("menu.materials.lectures", language))) {
-			message.setText(MessageHandler.getMessage("message.materials.lectures", language));
+			sendMessage.setText(MessageHandler.getMessage("message.materials.lectures", language));
 
 		}
 
 		else if (input.equals(MessageHandler.getMessage("menu.materials.semester", language))) {
-			message = pickSubject(chatId, message, language);
+			sendMessage = pickSubject(chatId, sendMessage, language);
 
 		}
 
 		else if (input.equals(MessageHandler.getMessage("menu.materials.literature", language))) {
-			message.setText(MessageHandler.getMessage("message.materials.literature", language));
+			sendMessage.setText(MessageHandler.getMessage("message.materials.literature", language));
 
 		}
 
 		else if (input.equals(MessageHandler.getMessage("menu.back", language))) {
-			message.setText(MessageHandler.getMessage("message.stepBackToMainMenu", language));
-			message.setReplyMarkup(KeyboardFactory.createMainMenuKeyboard(language));
+			sendMessage.setText(MessageHandler.getMessage("message.stepBackToMainMenu", language));
+			sendMessage.setReplyMarkup(KeyboardFactory.createMainMenuKeyboard(language));
 			service.setUserState(chatId, UserState.MAIN_MENU);
 		}
 
 		else {
-			message.setText(MessageHandler.getMessage("message.unknownCommand", language));
-			message.setReplyMarkup(KeyboardFactory.createMaterialsMenuKeyboard(language));
+			sendMessage.setText(MessageHandler.getMessage("message.unknownCommand", language));
+			sendMessage.setReplyMarkup(KeyboardFactory.createMaterialsMenuKeyboard(language));
 		}
 
-		return message;
+		return sendMessage;
 	}
 
 }
