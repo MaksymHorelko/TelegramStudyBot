@@ -51,7 +51,6 @@
 		<module>rabbitmq</module>
 		<module>node</module>
 		<module>jpa</module>
-		<module>utils</module>
-		<module>test</module>
+		<module>Virustotal-Public-API-V2.0-Client</module>
 	</modules>
 </project>

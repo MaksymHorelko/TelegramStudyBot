@@ -1,8 +1,6 @@
 package ua.gexlq.TelegramStudyBot.exceptions;
 
 public class UnsupportedMimeTypeException extends RuntimeException {
-	private static final long serialVersionUID = 1L;
-
 	public UnsupportedMimeTypeException(String message, Throwable cause) {
 		super(message, cause);
 	}

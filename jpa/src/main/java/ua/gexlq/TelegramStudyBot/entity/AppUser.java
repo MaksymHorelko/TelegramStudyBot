@@ -41,8 +41,6 @@ public class AppUser {
 
 	private Long telegramUserId;
 
-	private Long telegramChatId;
-
 	private String firstName;
 
 	private String lastName;
@@ -59,7 +57,7 @@ public class AppUser {
 	private String currentActiveMessageId;
 
 	@Builder.Default
-	private Boolean isTrusted = false;
+	private Integer warnings = 0;
 
 	@Builder.Default
 	private Boolean isReadyToSendFile = false;

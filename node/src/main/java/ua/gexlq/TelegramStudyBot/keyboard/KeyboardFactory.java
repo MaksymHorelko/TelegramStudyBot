@@ -84,7 +84,7 @@ public class KeyboardFactory {
 		List<KeyboardRow> keyboard = new ArrayList<>();
 
 		KeyboardRow row1 = new KeyboardRow();
-		row1.add(messageUtils.getAnswerTextByCode("menu.help.commands", language));
+		row1.add(messageUtils.getAnswerTextByCode("menu.help.rules", language));
 		row1.add(messageUtils.getAnswerTextByCode("menu.help.donate", language));
 
 		KeyboardRow row2 = new KeyboardRow();

@@ -1,5 +1,9 @@
 package ua.gexlq.TelegramStudyBot.cotroller;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 import javax.annotation.PostConstruct;
 
 import org.springframework.stereotype.Component;
@@ -14,6 +18,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import ua.gexlq.TelegramStudyBot.config.Config;
+import ua.gexlq.TelegramStudyBot.dao.AppDataDAO;
 import ua.gexlq.TelegramStudyBot.dao.DownloadedFileDAO;
 import ua.gexlq.TelegramStudyBot.entity.DownloadedFile;
 
@@ -26,6 +31,8 @@ public class TelegramBot extends TelegramLongPollingBot {
 
 	private final DownloadedFileDAO downloadedFileDAO;
 
+	private final AppDataDAO appDataDAO;
+	
 	private final Config config;
 
 	@PostConstruct
@@ -65,7 +72,16 @@ public class TelegramBot extends TelegramLongPollingBot {
 	public void sendAnswer(SendDocument sendDocument, DownloadedFile file) {
 		try {
 			execute(sendDocument);
+			var data = appDataDAO.getAppData();
+			long nextTempId = data.getLastTempMessageId() + 1;
+			data.setLastTempMessageId(nextTempId);
+			appDataDAO.save(data);
+			
+			file.setMessageIdInTemp(nextTempId);
 			downloadedFileDAO.save(file);
+			
+			Path path = Paths.get(file.getFilePath());
+			Files.delete(path);
 		} catch (Exception e) {
 			log.error(e.getMessage());
 		}

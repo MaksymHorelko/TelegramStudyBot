@@ -47,6 +47,10 @@ public class MainServiceImpl implements MainService {
 
 	private final MessageUtils messageUtils;
 
+	private final int maxUploadedFileSize = 20_000_000;
+	
+	private final int maxWarnings = 5;
+	
 	@PostConstruct
 	private void initAppData() {
 		appDataService.initializeAppData();
@@ -70,6 +74,12 @@ public class MainServiceImpl implements MainService {
 	public void processDocMessage(Update update) {
 
 		var user = findOrSaveAppUser(update);
+		
+		if(!isUserTrusted(user)) {
+			var isNotTrusted = messageUtils.createSendMessageWithAnswerCode(update, "message.userIsNotTrusted");
+			producerService.produceAnswer(isNotTrusted);
+			return;
+		}
 
 		if (!user.getIsReadyToSendFile()) {
 
@@ -78,7 +88,7 @@ public class MainServiceImpl implements MainService {
 			return;
 		}
 
-		if (update.getMessage().getDocument().getFileSize() > 20_000_000) {
+		if (update.getMessage().getDocument().getFileSize() > maxUploadedFileSize) {
 			var tooBig = messageUtils.createSendMessageWithAnswerCode(update, "message.upload.fileIsTooBig");
 			producerService.produceAnswer(tooBig);
 
@@ -113,14 +123,20 @@ public class MainServiceImpl implements MainService {
 		var uploadedSuccess = messageUtils.createSendMessageWithAnswerCode(update, "message.upload.success");
 		producerService.produceAnswer(uploadedSuccess);
 
-		// TODO send file to scanclass
+		String filePath = downloadedDocument.getFilePath();
 
-		// if (scan result is good) - >
-		// TODO send file to temp
-		// producerService.produceAnswer(downloadedDocument);
+		boolean isSafe = fileService.isFileSafe(filePath);
 
-		// else
-		// TODO delete file
+		if (isSafe)
+			producerService.produceAnswer(downloadedDocument);
+		else {
+			var fileIsNotSafe = messageUtils.createSendMessageWithAnswerCode(update, "message.upload.fileIsNotSafe");
+			producerService.produceAnswer(fileIsNotSafe);
+			
+			user.setWarnings(user.getWarnings() + 1);
+			appUserDAO.save(user);
+			
+		}
 
 		setFileUploadPermission(update, false);
 	}
@@ -158,6 +174,10 @@ public class MainServiceImpl implements MainService {
 
 		appUserDAO.save(user);
 	}
+	
+	private boolean isUserTrusted(AppUser appUser) {
+		return appUser.getWarnings() < maxWarnings;
+	}
 
 	private AppUser findOrSaveAppUser(Update update) {
 		User telegramUser;
@@ -172,7 +192,7 @@ public class MainServiceImpl implements MainService {
 		if (persistenceUser == null) {
 			AppUser transietAppUser = AppUser.builder().telegramUserId(telegramUser.getId())
 					.firstName(telegramUser.getFirstName()).lastName(telegramUser.getLastName())
-					.nickName(telegramUser.getUserName()).telegramChatId(update.getMessage().getChatId()).build();
+					.nickName(telegramUser.getUserName()).build();
 			if (update.getMessage().getChatId() < 0)
 				transietAppUser.setUserState(UserState.GROUP_STATE);
 

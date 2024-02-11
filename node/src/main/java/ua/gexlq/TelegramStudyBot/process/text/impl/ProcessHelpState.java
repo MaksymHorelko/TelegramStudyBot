@@ -28,13 +28,13 @@ public class ProcessHelpState implements ProcessMessageByUserState {
 
 	private Map<String, HelpCommand> commandToEnumMapping = new HashMap<>();
 
-	private static final String MENU_HELP_COMMANDS = "menu.help.commands";
+	private static final String MENU_HELP_RULES = "menu.help.rules";
 	private static final String MENU_HELP_DONATE = "menu.help.donate";
 	private static final String MENU_HELP_CONTACT = "menu.help.contact";
 	private static final String MENU_HELP_CHAT = "menu.help.chat";
 	private static final String MENU_BACK = "menu.back";
 
-	private static final String MESSAGE_HELP_COMMANDS = "message.help.commands";
+	private static final String MESSAGE_HELP_RULES = "message.help.rules";
 	private static final String MESSAGE_HELP_DONATE = "message.help.donate";
 	private static final String MESSAGE_HELP_CONTACT = "message.help.contact";
 	private static final String MESSAGE_HELP_CHAT = "message.help.chat";
@@ -66,8 +66,8 @@ public class ProcessHelpState implements ProcessMessageByUserState {
 		SendMessage response;
 
 		switch (helpCommand) {
-		case COMMANDS:
-			response = messageUtils.createSendMessageWithAnswerCode(update, MESSAGE_HELP_COMMANDS);
+		case RULES:
+			response = messageUtils.createSendMessageWithAnswerCode(update, MESSAGE_HELP_RULES);
 			break;
 
 		case DONATE:
@@ -99,7 +99,7 @@ public class ProcessHelpState implements ProcessMessageByUserState {
 	}
 
 	private void initMap(String language) {
-		commandToEnumMapping.put(messageUtils.getAnswerTextByCode(MENU_HELP_COMMANDS, language), HelpCommand.COMMANDS);
+		commandToEnumMapping.put(messageUtils.getAnswerTextByCode(MENU_HELP_RULES, language), HelpCommand.RULES);
 		commandToEnumMapping.put(messageUtils.getAnswerTextByCode(MENU_HELP_DONATE, language), HelpCommand.DONATE);
 		commandToEnumMapping.put(messageUtils.getAnswerTextByCode(MENU_HELP_CONTACT, language), HelpCommand.CONTACT);
 		commandToEnumMapping.put(messageUtils.getAnswerTextByCode(MENU_HELP_CHAT, language), HelpCommand.CHAT);

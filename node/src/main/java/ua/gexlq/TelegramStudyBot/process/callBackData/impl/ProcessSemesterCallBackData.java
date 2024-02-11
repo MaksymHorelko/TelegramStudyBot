@@ -21,7 +21,7 @@ public class ProcessSemesterCallBackData implements ProcessCallBackDataByState {
 	private final UserInfo userInfo;
 	private final MessageUtils messageUtils;
 
-	private final String MESSAGE_WORKS_SUBJECT = "message.works.subject";
+	private final String MESSAGE_WORKS_SUBJECT = "message.pick.subject";
 	private final String MESSAGE_IS_CORRECT = "message.isCorrect";
 	private final String MESSAGE_SUCCESS = "message.success";
 

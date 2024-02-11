@@ -38,7 +38,7 @@ public class ProcessRateMarkCallBackData implements ProcessCallBackDataByState {
 		String rateImpl = documentRating.getRateImplementaion();
 		String rateMark = callBackData.substring(callBackData.indexOf(">") + 1);
 
-		documentRating.setRateImplementaion(rateImpl);
+		documentRating.setRateMark(rateMark);
 		user.setUpcomingDocumentRating(documentRating);
 		appUserDAO.save(user);
 

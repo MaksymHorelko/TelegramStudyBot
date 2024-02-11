@@ -20,7 +20,7 @@ public class ProcessSubjectPageCallBackData implements ProcessCallBackDataByStat
 	private final MessageUtils messageUtils;
 	private final AppUserDAO appUserDAO;
 
-	private final String MESSAGE_WORK_SUBJECT = "message.works.subject";
+	private final String MESSAGE_WORK_SUBJECT = "message.pick.subject";
 
 	@Override
 	public EditMessageText handle(Update update) {

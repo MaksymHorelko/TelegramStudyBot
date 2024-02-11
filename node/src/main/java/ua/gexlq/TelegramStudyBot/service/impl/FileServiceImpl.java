@@ -10,6 +10,8 @@ import ua.gexlq.TelegramStudyBot.entity.DownloadedFile;
 import ua.gexlq.TelegramStudyBot.exceptions.UploadFileException;
 import ua.gexlq.TelegramStudyBot.service.FileService;
 import ua.gexlq.TelegramStudyBot.service.enums.SupportedMimeType;
+import ua.gexlq.TelegramStudyBot.utils.ArchiveChecker;
+import ua.gexlq.TelegramStudyBot.utils.VirusTotal;
 
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,6 +25,7 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 @Slf4j
@@ -43,7 +46,12 @@ public class FileServiceImpl implements FileService {
 	private String folderPath;
 
 	private final AppUserDAO appUserDAO;
+
 	private final DocumentMetadataDAO documentInfoDAO;
+
+	private final VirusTotal virusTotal;
+
+	private final ArchiveChecker archiveChecker;
 
 	@Override
 	public DownloadedFile downloadDocument(Update update) {
@@ -68,6 +76,45 @@ public class FileServiceImpl implements FileService {
 		}
 	}
 
+	@Override
+	public boolean isFileSafe(String filePath) {
+		try {
+			boolean containsViruses = virusTotal.isFileContainsViruses(filePath);
+
+			if (containsViruses) {
+				deleteFileFromSystem(filePath);
+				return false;
+			}
+
+			if (archiveChecker.isArchive(filePath)) {
+
+				boolean isArchiveIsSupported = archiveChecker.isSafeArchive(filePath);
+
+				if (!isArchiveIsSupported) {
+					deleteFileFromSystem(filePath);
+					return false;
+				}
+
+			}
+
+			return true;
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return false;
+	}
+
+	private void deleteFileFromSystem(String filePath) throws IOException {
+		try {
+			Path path = Paths.get(filePath);
+			Files.delete(path);
+		} catch (IOException e) {
+			throw new IOException("file not found");
+		}
+	}
+
 	private DownloadedFile buildDownloadeddFile(Update update, String filePath) {
 
 		var document = update.getMessage().getDocument();
@@ -77,7 +124,7 @@ public class FileServiceImpl implements FileService {
 		String authorUserName = update.getMessage().getFrom().getUserName();
 
 		String docName = document.getFileName();
-		
+
 		String telegramFileId = document.getFileId();
 
 		String mimeType = document.getMimeType();
