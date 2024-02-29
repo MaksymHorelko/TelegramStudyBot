@@ -13,6 +13,7 @@ import java.util.List;
 
 @Component
 public class ArchiveChecker {
+
 	public boolean isSafeArchive(String filePatString) throws Exception {
 		try {
 			File file = new File(filePatString);
@@ -55,7 +56,7 @@ public class ArchiveChecker {
 		return false;
 	}
 
-	// TODO FIND NEW WAY
+	// TODO FIND NEW WAY FOR CHECK
 	public boolean isArchive(String fileName) {
 		String fileExtension = fileName.substring(fileName.lastIndexOf(".") + 1);
 

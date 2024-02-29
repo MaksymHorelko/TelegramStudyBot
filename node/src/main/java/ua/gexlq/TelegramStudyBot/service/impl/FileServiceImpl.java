@@ -7,10 +7,11 @@ import ua.gexlq.TelegramStudyBot.dao.DocumentMetadataDAO;
 import ua.gexlq.TelegramStudyBot.entity.AppUser;
 import ua.gexlq.TelegramStudyBot.entity.DocumentMetadata;
 import ua.gexlq.TelegramStudyBot.entity.DownloadedFile;
-import ua.gexlq.TelegramStudyBot.exceptions.UploadFileException;
+import ua.gexlq.TelegramStudyBot.exceptions.FileServiceException;
 import ua.gexlq.TelegramStudyBot.service.FileService;
 import ua.gexlq.TelegramStudyBot.service.enums.SupportedMimeType;
 import ua.gexlq.TelegramStudyBot.utils.ArchiveChecker;
+import ua.gexlq.TelegramStudyBot.utils.UserPermissionsService;
 import ua.gexlq.TelegramStudyBot.utils.VirusTotal;
 
 import org.json.JSONObject;
@@ -49,6 +50,8 @@ public class FileServiceImpl implements FileService {
 
 	private final DocumentMetadataDAO documentInfoDAO;
 
+	private final UserPermissionsService permissionsService;
+	
 	private final VirusTotal virusTotal;
 
 	private final ArchiveChecker archiveChecker;
@@ -68,11 +71,13 @@ public class FileServiceImpl implements FileService {
 
 			String fullFilePath = saveFileLocally(fileInByte, update.getMessage().getDocument().getMimeType());
 
+			permissionsService.addNewUpload(update);
+
 			return buildDownloadeddFile(update, fullFilePath);
 		}
 
 		else {
-			throw new UploadFileException("Bad response from telegram service: " + response);
+			throw new FileServiceException("Bad response from telegram service: " + response);
 		}
 	}
 
@@ -102,7 +107,7 @@ public class FileServiceImpl implements FileService {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+
 		return false;
 	}
 
@@ -123,7 +128,7 @@ public class FileServiceImpl implements FileService {
 
 		String authorUserName = update.getMessage().getFrom().getUserName();
 
-		String docName = document.getFileName();
+		String docName = filePath.substring(filePath.lastIndexOf("/") + 1);
 
 		String telegramFileId = document.getFileId();
 
@@ -132,12 +137,12 @@ public class FileServiceImpl implements FileService {
 		Long fileSize = Long.valueOf(document.getFileSize());
 
 		AppUser user = appUserDAO.findUserByTelegramUserId(authorId);
-		var documentRate = user.getUpcomingDocumentRating();
+		var documentCodeAndRating = user.getUpcomingDocument();
 
-		String workCode = documentRate.getWorkCode();
-		String rateContent = documentRate.getRateContent();
-		String rateImplementaion = documentRate.getRateImplementaion();
-		String rateMark = documentRate.getRateMark();
+		String workCode = documentCodeAndRating.getWorkCode();
+		String rateContent = documentCodeAndRating.getRateContent();
+		String rateImplementaion = documentCodeAndRating.getRateImplementaion();
+		String rateMark = documentCodeAndRating.getRateMark();
 
 		var documentMetadata = DocumentMetadata.builder().authorId(authorId).authorUserName(authorUserName)
 				.workCode(workCode).rateContent(rateContent).rateImplementaion(rateImplementaion).rateMark(rateMark)
@@ -166,7 +171,7 @@ public class FileServiceImpl implements FileService {
 			log.info("File is saved: " + fullFilePath);
 			return fullFilePath;
 		} catch (IOException e) {
-			throw new UploadFileException("Error saving file locally: " + e.getMessage());
+			throw new FileServiceException("Error saving file locally: " + e.getMessage());
 		}
 	}
 
@@ -180,13 +185,13 @@ public class FileServiceImpl implements FileService {
 		try {
 			urlObj = new URL(fullUri);
 		} catch (MalformedURLException e) {
-			throw new UploadFileException(e);
+			throw new FileServiceException(e);
 		}
 
 		try (InputStream is = urlObj.openStream()) {
 			return is.readAllBytes();
 		} catch (IOException e) {
-			throw new UploadFileException(urlObj.toExternalForm(), e);
+			throw new FileServiceException(urlObj.toExternalForm(), e);
 		}
 	}
 }

@@ -7,6 +7,6 @@ public interface MainService {
 	
 	public void processDocMessage(Update update);
 	
-	public void processCallBackDataMessage(Update update);
+	public void processCallbackQueryMessage(Update update);
 	
 }

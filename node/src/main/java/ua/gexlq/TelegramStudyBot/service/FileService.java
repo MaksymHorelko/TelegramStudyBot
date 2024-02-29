@@ -9,4 +9,5 @@ public interface FileService {
 	public DownloadedFile downloadDocument(Update update);
 	
 	public boolean isFileSafe(String filePath);
+
 }

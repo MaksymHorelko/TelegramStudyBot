@@ -3,6 +3,7 @@ package ua.gexlq.TelegramStudyBot.cotroller;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Scanner;
 
 import javax.annotation.PostConstruct;
 
@@ -18,7 +19,6 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import ua.gexlq.TelegramStudyBot.config.Config;
-import ua.gexlq.TelegramStudyBot.dao.AppDataDAO;
 import ua.gexlq.TelegramStudyBot.dao.DownloadedFileDAO;
 import ua.gexlq.TelegramStudyBot.entity.DownloadedFile;
 
@@ -31,8 +31,6 @@ public class TelegramBot extends TelegramLongPollingBot {
 
 	private final DownloadedFileDAO downloadedFileDAO;
 
-	private final AppDataDAO appDataDAO;
-	
 	private final Config config;
 
 	@PostConstruct
@@ -71,15 +69,24 @@ public class TelegramBot extends TelegramLongPollingBot {
 
 	public void sendAnswer(SendDocument sendDocument, DownloadedFile file) {
 		try {
-			execute(sendDocument);
-			var data = appDataDAO.getAppData();
-			long nextTempId = data.getLastTempMessageId() + 1;
-			data.setLastTempMessageId(nextTempId);
-			appDataDAO.save(data);
-			
+
+			long nextTempId;
+			var lastDownloadedFile = downloadedFileDAO.findLastDownloadedFile();
+			if (lastDownloadedFile == null) {
+				var scan = new Scanner(System.in);
+				System.out.println("Enter LAST messageId in your 'temp folder' GROUP: ");
+				nextTempId = scan.nextLong() + 1;
+				scan.close();
+
+			} else {
+				nextTempId = lastDownloadedFile.getMessageIdInTemp() + 1;
+			}
+
 			file.setMessageIdInTemp(nextTempId);
 			downloadedFileDAO.save(file);
-			
+
+			execute(sendDocument);
+
 			Path path = Paths.get(file.getFilePath());
 			Files.delete(path);
 		} catch (Exception e) {

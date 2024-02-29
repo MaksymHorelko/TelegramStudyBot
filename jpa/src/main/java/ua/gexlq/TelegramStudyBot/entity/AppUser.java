@@ -22,6 +22,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import ua.gexlq.TelegramStudyBot.entity.enums.Languages;
 import ua.gexlq.TelegramStudyBot.entity.enums.UserState;
 
 @Setter
@@ -52,30 +53,27 @@ public class AppUser {
 	private String specialization;
 
 	private String semester;
-	
+
 	// LAST USER MESSAGE ID
 	private String currentActiveMessageId;
 
 	@Builder.Default
-	private Integer warnings = 0;
+	@OneToOne(cascade = CascadeType.ALL)
+	@JoinColumn(name = "permissions")
+	private UserPermissions permissions = new UserPermissions();
 
-	@Builder.Default
-	private Boolean isReadyToSendFile = false;
+	@CreationTimestamp
+	private LocalDateTime registerDate;
 
-	@Builder.Default
-	private Boolean isReadyToSendSuggestion = false;
+	@OneToOne(cascade = CascadeType.ALL)
+	@JoinColumn(name = "upcoming_document")
+	private UpcomingDocument upcomingDocument;
 
 	@Builder.Default
 	@Enumerated(EnumType.STRING)
 	private UserState userState = UserState.MAIN_STATE;
 
-	@CreationTimestamp
-	private LocalDateTime registerDate;
-	
-	@OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "upcoming_document_rating_id")
-	private UpcomingDocumentRating upcomingDocumentRating;
-
 	@Builder.Default
-	private String userLanguage = "uk";
+	@Enumerated(EnumType.STRING)
+	private Languages userLanguage = Languages.UKRANIAN;
 }

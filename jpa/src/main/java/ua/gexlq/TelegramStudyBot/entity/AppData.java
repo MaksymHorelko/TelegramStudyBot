@@ -1,6 +1,8 @@
 package ua.gexlq.TelegramStudyBot.entity;
 
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
@@ -11,6 +13,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import ua.gexlq.TelegramStudyBot.entity.enums.FileState;
 
 @Setter
 @Getter
@@ -32,20 +35,24 @@ public class AppData {
 
 	@Builder.Default
 	private int uploadedWorks = 0;
-
+	
 	@Builder.Default
 	private long fileOnCheck = 0;
 	
 	@Builder.Default
-	private long lastFolderMessageId = 0;
-
+	private final int maxWarningsBeforeBan = 5;
+	
 	@Builder.Default
-	private long lastCheckMessageId = 0;
-
+	private final int maxContactsPerDay = 3;
+	
 	@Builder.Default
-	private long lastTempMessageId = 0;
-
+	private final Integer maxUploadedFilesPerDay = 5;
+	
 	@Builder.Default
-	private long lastSuggestionMessageId = 0;
+	private final Integer maxUploadedFileSize = 20_000_000;
+	
+	@Builder.Default
+	@Enumerated(EnumType.STRING)
+	private FileState fileState = FileState.NO_FILE_IN_QUEUE;
 
 }

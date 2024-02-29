@@ -7,6 +7,7 @@ import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageTe
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import lombok.RequiredArgsConstructor;
+import ua.gexlq.TelegramStudyBot.entity.enums.Languages;
 
 @RequiredArgsConstructor
 @Component
@@ -15,11 +16,11 @@ public class MessageUtils {
 
 	private final UserInfo userInfo;
 
-	public ForwardMessage createForwardMessageDocument(String fromChatId, String toChatId, Integer messageIdToForward) {
+	public ForwardMessage createForwardMessageDocument(long fromChatId, long toChatId, long messageIdToForward) {
 		var forwardMessage = new ForwardMessage();
-		forwardMessage.setFromChatId(fromChatId);
-		forwardMessage.setChatId(toChatId);
-		forwardMessage.setMessageId(messageIdToForward);
+		forwardMessage.setFromChatId(String.valueOf(fromChatId));
+		forwardMessage.setChatId(String.valueOf(toChatId));
+		forwardMessage.setMessageId((int) messageIdToForward);
 
 		return forwardMessage;
 	}
@@ -88,5 +89,9 @@ public class MessageUtils {
 
 	public String getAnswerTextByCode(String messageCode, String language) {
 		return loader.getTextByCode(messageCode, language);
+	}
+	
+	public String getAnswerTextByCode(String messageCode, Languages language) {
+		return loader.getTextByCode(messageCode, language.toString());
 	}
 }

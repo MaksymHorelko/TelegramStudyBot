@@ -60,7 +60,7 @@ public class UpdateController {
 		else if (message.hasText())
 			processTextMessage(update);
 
-		else if (message.hasDocument() || message.hasPhoto())
+		else if (message.hasDocument())
 			processDocumentMessage(update);
 
 	}
@@ -82,9 +82,7 @@ public class UpdateController {
 
 		var sendDocument = new SendDocument();
 
-		// TODO CHANGE DESTINATION TO TEMP GROUP
-		sendDocument.setChatId(String.valueOf(910439259));
-//		sendDocument.setChatId(tempFolder);
+		sendDocument.setChatId(tempFolder);
 
 		InputFile inputFile = new InputFile(new File(filePath));
 		sendDocument.setDocument(inputFile);

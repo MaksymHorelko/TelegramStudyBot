@@ -11,8 +11,10 @@ import lombok.RequiredArgsConstructor;
 import ua.gexlq.TelegramStudyBot.dao.AppUserDAO;
 import ua.gexlq.TelegramStudyBot.entity.AppUser;
 import ua.gexlq.TelegramStudyBot.entity.enums.UserState;
-import ua.gexlq.TelegramStudyBot.keyboard.InlineKeyboardFactory;
-import ua.gexlq.TelegramStudyBot.keyboard.KeyboardFactory;
+import ua.gexlq.TelegramStudyBot.keyboard.inline.pages.ChangeDataPage;
+import ua.gexlq.TelegramStudyBot.keyboard.inline.pages.ChangeLanguagePage;
+import ua.gexlq.TelegramStudyBot.keyboard.menu.menus.MainMenu;
+import ua.gexlq.TelegramStudyBot.keyboard.menu.menus.SettingsMenu;
 import ua.gexlq.TelegramStudyBot.process.text.ProcessMessageByUserState;
 import ua.gexlq.TelegramStudyBot.process.text.enums.SettingsCommand;
 import ua.gexlq.TelegramStudyBot.utils.MessageUtils;
@@ -24,11 +26,15 @@ public class ProcessSettingsState implements ProcessMessageByUserState {
 
 	private final AppUserDAO appUserDAO;
 	private final UserInfo userInfo;
-	private final KeyboardFactory keyboardFactory;
-	private final InlineKeyboardFactory inlineKeyboardFactory;
 	private final MessageUtils messageUtils;
 
+	private final ChangeDataPage changeDataPage;
+	private final ChangeLanguagePage changeLanguagePage;
+
 	private Map<String, SettingsCommand> commandToEnumMapping = new HashMap<>();
+
+	private final MainMenu mainMenu;
+	private final SettingsMenu settingsMenu;
 
 	private static final String MENU_SETTINGS_LANGUAGE = "menu.settings.language";
 	private static final String MENU_SETTINGS_NOTIFICATION = "menu.settings.notifications";
@@ -57,8 +63,7 @@ public class ProcessSettingsState implements ProcessMessageByUserState {
 			response = handleCommand(update, settingsCommand, language);
 		} else {
 			response = messageUtils.createSendMessageWithAnswerCode(update, MESSAGE_UNKNOWN_COMMAND);
-			response.setReplyMarkup(
-					keyboardFactory.createSettingsMenuKeyboard(userInfo.isUserDataSet(chatId), language));
+			response.setReplyMarkup(settingsMenu.createSettingsMenuKeyboard(userInfo.isUserDataSet(chatId), language));
 		}
 
 		return response;
@@ -72,7 +77,7 @@ public class ProcessSettingsState implements ProcessMessageByUserState {
 
 		case LANGUAGE:
 			response = messageUtils.createSendMessageWithAnswerCode(update, MESSAGE_SETTINGS_LANGUAGE);
-			response.setReplyMarkup(inlineKeyboardFactory.createChangeLanguagePage(language));
+			response.setReplyMarkup(changeLanguagePage.createChangeLanguagePage(language));
 			break;
 
 		case NOTIFICATION:
@@ -88,21 +93,20 @@ public class ProcessSettingsState implements ProcessMessageByUserState {
 
 			user.setCurrentActiveMessageId(String.valueOf(update.getMessage().getMessageId() + 1));
 			appUserDAO.save(user);
-			
+
 			response = messageUtils.createSendMessageWithText(update, dataAnswer);
-			response.setReplyMarkup(inlineKeyboardFactory.createChangeDataPage(language));
+			response.setReplyMarkup(changeDataPage.createChangeDataPage(language));
 			break;
 
 		case BACK:
 			response = messageUtils.createSendMessageWithAnswerCode(update, MESSAGE_STEP_BACK_TO_MAIN_MENU);
-			response.setReplyMarkup(keyboardFactory.createMainMenuKeyboard(language));
+			response.setReplyMarkup(mainMenu.createMainMenuKeyboard(language));
 			setNewState(update, UserState.MAIN_STATE);
 			break;
 
 		default:
 			response = messageUtils.createSendMessageWithAnswerCode(update, MESSAGE_UNKNOWN_COMMAND);
-			response.setReplyMarkup(
-					keyboardFactory.createSettingsMenuKeyboard(userInfo.isUserDataSet(chatId), language));
+			response.setReplyMarkup(settingsMenu.createSettingsMenuKeyboard(userInfo.isUserDataSet(chatId), language));
 		}
 
 		return response;

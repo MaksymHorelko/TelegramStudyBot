@@ -33,7 +33,7 @@ public class ConsumerServiceImpl implements ConsumerService {
 	@Override
 	@RabbitListener(queues = CALLBACKQUERY_MESSAGE_UPDATE)
 	public void consumeCallBackDataMessageUpdate(Update update) {
-		mainService.processCallBackDataMessage(update);
+		mainService.processCallbackQueryMessage(update);
 	}
 
 }

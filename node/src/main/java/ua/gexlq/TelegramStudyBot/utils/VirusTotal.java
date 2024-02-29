@@ -19,6 +19,9 @@ public class VirusTotal {
 
 	@Value("${virus-total.apikey}")
 	private String virusTotalApiKey;
+	
+	@Value("${virus-total.maxPositives}")
+	private int maxPositives;
 
 	public boolean isFileContainsViruses(String filePath) throws Exception {
 
@@ -36,7 +39,7 @@ public class VirusTotal {
 			if (positives == null)
 				return false;
 
-			return positives > 5 ? true : false;
+			return positives > maxPositives ? true : false;
 
 		} catch (APIKeyNotFoundException ex) {
 			throw new APIKeyNotFoundException("API Key not found! " + ex.getMessage());

@@ -15,42 +15,28 @@ import ua.gexlq.TelegramStudyBot.entity.AppUser;
 import ua.gexlq.TelegramStudyBot.entity.RawData;
 import ua.gexlq.TelegramStudyBot.entity.enums.UserState;
 import ua.gexlq.TelegramStudyBot.entity.service.AppDataService;
-import ua.gexlq.TelegramStudyBot.process.callBackData.ProcessCallBackDataStateManager;
-import ua.gexlq.TelegramStudyBot.process.callBackData.enums.CallBackDataTypes;
-import ua.gexlq.TelegramStudyBot.process.text.ProcessStateManager;
-import ua.gexlq.TelegramStudyBot.service.FileService;
+import ua.gexlq.TelegramStudyBot.exceptions.DocumentServiceException;
+import ua.gexlq.TelegramStudyBot.process.callbackQuery.CallbackQueryMessageService;
+import ua.gexlq.TelegramStudyBot.process.document.DocumentMessageService;
+import ua.gexlq.TelegramStudyBot.process.text.TextMessageService;
 import ua.gexlq.TelegramStudyBot.service.MainService;
-import ua.gexlq.TelegramStudyBot.service.ProducerService;
-import ua.gexlq.TelegramStudyBot.service.enums.SupportedMimeType;
-import ua.gexlq.TelegramStudyBot.utils.MessageUtils;
 
 @Slf4j
 @RequiredArgsConstructor
 @Service
 public class MainServiceImpl implements MainService {
 
+	// DAO
 	private final RawDataDAO rawDataDAO;
-
 	private final AppUserDAO appUserDAO;
-
 	private final AppDataDAO appDataDAO;
 
+	// Services
 	private final AppDataService appDataService;
+	private final TextMessageService textMessageService;
+	private final CallbackQueryMessageService callbackQueryMessageService;
+	private final DocumentMessageService documentMessageService;
 
-	private final ProducerService producerService;
-
-	private final FileService fileService;
-
-	private final ProcessStateManager processStateManager;
-
-	private final ProcessCallBackDataStateManager processCallBackDataStateManager;
-
-	private final MessageUtils messageUtils;
-
-	private final int maxUploadedFileSize = 20_000_000;
-	
-	private final int maxWarnings = 5;
-	
 	@PostConstruct
 	private void initAppData() {
 		appDataService.initializeAppData();
@@ -58,125 +44,61 @@ public class MainServiceImpl implements MainService {
 
 	@Override
 	public void processTextMessage(Update update) {
-		saveRawData(update);
+		try {
+			saveRawData(update);
+			var user = findOrSaveAppUser(update);
 
-		var user = findOrSaveAppUser(update);
+			if (textMessageService.isCheckGroupChat(update)) {
+				textMessageService.handleCheckGroupChat(update);
+				return;
+			}
 
-		if (user.getIsReadyToSendFile())
-			setFileUploadPermission(update, false);
+			textMessageService.handleUserChat(user, update);
 
-		var response = processStateManager.handle(user.getUserState(), update);
+		} catch (Exception e) {
+			log.error(e.getMessage());
+		}
+	}
 
-		producerService.produceAnswer(response);
+	@Override
+	public void processCallbackQueryMessage(Update update) {
+		try {
+			saveRawData(update);
+
+			var user = findOrSaveAppUser(update);
+
+			callbackQueryMessageService.handleContactPermission(update);
+
+			callbackQueryMessageService.handleFileUploadPermission(update);
+
+			callbackQueryMessageService.handleCurrentActiveMessageId(user, update);
+
+			callbackQueryMessageService.handleUserCallBackData(update);
+
+		} catch (Exception e) {
+			log.error(e.getMessage());
+		}
 	}
 
 	@Override
 	public void processDocMessage(Update update) {
+		try {
+			saveRawData(update);
 
-		var user = findOrSaveAppUser(update);
-		
-		if(!isUserTrusted(user)) {
-			var isNotTrusted = messageUtils.createSendMessageWithAnswerCode(update, "message.userIsNotTrusted");
-			producerService.produceAnswer(isNotTrusted);
-			return;
+			findOrSaveAppUser(update);
+
+			if (documentMessageService.isSoftwareDocument(update)) {
+				documentMessageService.handleSoftware(update);
+				return;
+			}
+
+			documentMessageService.handleUserDocument(update);
+
+		} catch (DocumentServiceException docEx) {
+			log.info(docEx.getMessage());
+		} catch (Exception e) {
+			log.error("Error occurred", e);
 		}
-
-		if (!user.getIsReadyToSendFile()) {
-
-			// TODO forward message to trash group for check
-
-			return;
-		}
-
-		if (update.getMessage().getDocument().getFileSize() > maxUploadedFileSize) {
-			var tooBig = messageUtils.createSendMessageWithAnswerCode(update, "message.upload.fileIsTooBig");
-			producerService.produceAnswer(tooBig);
-
-			// TODO forward message to trash group for check
-
-			setFileUploadPermission(update, false);
-
-			return;
-		}
-
-		String mimeType = update.getMessage().getDocument().getMimeType();
-
-		if (!SupportedMimeType.isSupportedMimeType(mimeType)) {
-			var fileDoesntSupported = messageUtils.createSendMessageWithAnswerCode(update,
-					"message.upload.fileDoesntSupported");
-			producerService.produceAnswer(fileDoesntSupported);
-
-			// TODO forward message to trash group for check
-
-			setFileUploadPermission(update, false);
-
-			return;
-		}
-
-		saveRawData(update);
-
-		var processing = messageUtils.createSendMessageWithAnswerCode(update, "message.upload.processing");
-		producerService.produceAnswer(processing);
-
-		var downloadedDocument = fileService.downloadDocument(update);
-
-		var uploadedSuccess = messageUtils.createSendMessageWithAnswerCode(update, "message.upload.success");
-		producerService.produceAnswer(uploadedSuccess);
-
-		String filePath = downloadedDocument.getFilePath();
-
-		boolean isSafe = fileService.isFileSafe(filePath);
-
-		if (isSafe)
-			producerService.produceAnswer(downloadedDocument);
-		else {
-			var fileIsNotSafe = messageUtils.createSendMessageWithAnswerCode(update, "message.upload.fileIsNotSafe");
-			producerService.produceAnswer(fileIsNotSafe);
-			
-			user.setWarnings(user.getWarnings() + 1);
-			appUserDAO.save(user);
-			
-		}
-
-		setFileUploadPermission(update, false);
-	}
-
-	@Override
-	public void processCallBackDataMessage(Update update) {
-		saveRawData(update);
-
-		var user = findOrSaveAppUser(update);
-
-		if (user.getIsReadyToSendFile())
-			setFileUploadPermission(update, false);
-
-		if (user.getCurrentActiveMessageId() != null && !user.getCurrentActiveMessageId()
-				.equals(String.valueOf(update.getCallbackQuery().getMessage().getMessageId()))) {
-			update.getCallbackQuery().setData(CallBackDataTypes.ERROR.toString());
-		}
-
-		var response = processCallBackDataStateManager.handle(update);
-
-		producerService.produceAnswer(response);
-	}
-
-	public void setFileUploadPermission(Update update, boolean isAllowed) {
-		User telegramUser;
-
-		if (update.hasMessage())
-			telegramUser = update.getMessage().getFrom();
-		else
-			telegramUser = update.getCallbackQuery().getFrom();
-
-		AppUser user = appUserDAO.findUserByTelegramUserId(telegramUser.getId());
-
-		user.setIsReadyToSendFile(isAllowed);
-
-		appUserDAO.save(user);
-	}
-	
-	private boolean isUserTrusted(AppUser appUser) {
-		return appUser.getWarnings() < maxWarnings;
 	}
 
 	private AppUser findOrSaveAppUser(Update update) {

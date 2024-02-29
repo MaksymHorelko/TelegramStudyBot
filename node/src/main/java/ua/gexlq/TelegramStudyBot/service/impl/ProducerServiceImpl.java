@@ -26,18 +26,18 @@ public class ProducerServiceImpl implements ProducerService {
 	}
 
 	@Override
-	public void produceAnswer(EditMessageText sendMessage) {
-		rabbitTemplate.convertAndSend(ANSWER_EDIT_MESSAGE, sendMessage);
+	public void produceAnswer(EditMessageText editMessageText) {
+		rabbitTemplate.convertAndSend(ANSWER_EDIT_MESSAGE, editMessageText);
 	}
 
 	@Override
-	public void produceAnswer(ForwardMessage sendMessage) {
-		rabbitTemplate.convertAndSend(ANSWER_FORWARD_MESSAGE, sendMessage);
+	public void produceAnswer(ForwardMessage forwardMessage) {
+		rabbitTemplate.convertAndSend(ANSWER_FORWARD_MESSAGE, forwardMessage);
 	}
 
 	@Override
-	public void produceAnswer(DownloadedFile file) {
-		rabbitTemplate.convertAndSend(ANSWER_DOCUMENT_MESSAGE, file);
+	public void produceAnswer(DownloadedFile downloadedFile) {
+		rabbitTemplate.convertAndSend(ANSWER_DOCUMENT_MESSAGE, downloadedFile);
 
 	}
 }

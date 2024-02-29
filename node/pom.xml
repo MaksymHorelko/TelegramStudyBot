@@ -7,7 +7,7 @@
   </parent>
   <artifactId>node</artifactId>
   
-    <dependencies>
+  <dependencies>
 
 	<dependency>
 		<groupId>org.springframework.boot</groupId>
@@ -39,7 +39,6 @@
 	<dependency>
 		<groupId>mysql</groupId>
 		<artifactId>mysql-connector-java</artifactId>
-		<version>8.0.29</version><!--$NO-MVN-MAN-VER$-->
 	</dependency>
 	
 	<dependency>
@@ -66,9 +65,9 @@
 	</dependency>
 
 	<dependency>
-    <groupId>org.apache.commons</groupId>
-    <artifactId>commons-compress</artifactId>
-    <version>1.21</version> <!-- Оновіть версію до актуальної -->
+	  <groupId>org.apache.commons</groupId>
+  	  <artifactId>commons-compress</artifactId>
+ 	  <version>1.26.0</version>
 	</dependency>
 
   </dependencies>

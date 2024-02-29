@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
 import ua.gexlq.TelegramStudyBot.dao.AppUserDAO;
+import ua.gexlq.TelegramStudyBot.entity.enums.UserState;
 
 @RequiredArgsConstructor
 @Component
@@ -46,7 +47,17 @@ public class UserInfo {
 
 	public String getUserLanguage(long telegramUserId) {
 		var user = appUserDAO.findUserByTelegramUserId(telegramUserId);
-		return user.getUserLanguage();
+		return user.getUserLanguage().toString();
+	}
+
+	public UserState getUserState(long telegramUserId) {
+		var user = appUserDAO.findUserByTelegramUserId(telegramUserId);
+		return user.getUserState();
+	}
+
+	public int getUserWarnings(long telegramUserId) {
+		var user = appUserDAO.findUserByTelegramUserId(telegramUserId);
+		return user.getPermissions().getWarnings();
 	}
 
 	public boolean isUserFacultySet(long telegramUserId) {
@@ -61,8 +72,24 @@ public class UserInfo {
 		return getUserSemester(telegramUserId) == null;
 	}
 
+	// TODO what is this
 	public boolean isUserDataSet(long telegramUserId) {
 		return getUserSemester(telegramUserId) != null;
+	}
+
+	public boolean isUserAbleToSendFile(long telegramUserId) {
+		var user = appUserDAO.findUserByTelegramUserId(telegramUserId);
+		return user.getPermissions().getAbleToSendFile();
+	}
+
+	public boolean isUserAbleToSendMesToSupport(long telegramUserId) {
+		var user = appUserDAO.findUserByTelegramUserId(telegramUserId);
+		return user.getPermissions().getAbleToSendMesToSupport();
+	}
+
+	public boolean isUserTrusted(long telegramUserId) {
+		var user = appUserDAO.findUserByTelegramUserId(telegramUserId);
+		return user.getPermissions().getTrusted();
 	}
 
 }

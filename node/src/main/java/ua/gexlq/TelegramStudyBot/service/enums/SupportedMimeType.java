@@ -1,10 +1,10 @@
 package ua.gexlq.TelegramStudyBot.service.enums;
 
-import ua.gexlq.TelegramStudyBot.exceptions.UnsupportedMimeTypeException;
+import ua.gexlq.TelegramStudyBot.exceptions.DocumentServiceException;
 
 public enum SupportedMimeType {
 	DOCX("application/vnd.openxmlformats-officedocument.wordprocessingml.document"), PDF("application/pdf"),
-	ZIP("application/zip");
+	ZIP("application/zip"), PNG("image/png"), JPEG("image/jpeg"), JPG("image/jpeg");
 
 	private final String type;
 
@@ -19,7 +19,7 @@ public enum SupportedMimeType {
 			}
 		}
 
-		throw new UnsupportedMimeTypeException("The mime type: " + mimeType + " is not supported");
+		throw new DocumentServiceException("The mime type: " + mimeType + " is not supported");
 	}
 
 	public static boolean isSupportedMimeType(String v) {

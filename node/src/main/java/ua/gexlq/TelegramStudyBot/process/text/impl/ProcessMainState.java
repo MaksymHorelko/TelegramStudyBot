@@ -8,7 +8,14 @@ import lombok.RequiredArgsConstructor;
 import ua.gexlq.TelegramStudyBot.dao.AppUserDAO;
 import ua.gexlq.TelegramStudyBot.entity.AppUser;
 import ua.gexlq.TelegramStudyBot.entity.enums.UserState;
-import ua.gexlq.TelegramStudyBot.keyboard.KeyboardFactory;
+import ua.gexlq.TelegramStudyBot.keyboard.inline.pages.FacultyPage;
+import ua.gexlq.TelegramStudyBot.keyboard.inline.pages.SemesterPage;
+import ua.gexlq.TelegramStudyBot.keyboard.inline.pages.SoftwarePage;
+import ua.gexlq.TelegramStudyBot.keyboard.inline.pages.SpecializationPage;
+import ua.gexlq.TelegramStudyBot.keyboard.inline.pages.SubjectPage;
+import ua.gexlq.TelegramStudyBot.keyboard.menu.menus.HelpMenu;
+import ua.gexlq.TelegramStudyBot.keyboard.menu.menus.MainMenu;
+import ua.gexlq.TelegramStudyBot.keyboard.menu.menus.SettingsMenu;
 import ua.gexlq.TelegramStudyBot.process.text.ProcessMessageByUserState;
 import ua.gexlq.TelegramStudyBot.process.text.enums.MainCommand;
 import ua.gexlq.TelegramStudyBot.utils.MessageUtils;
@@ -23,23 +30,36 @@ public class ProcessMainState implements ProcessMessageByUserState {
 
 	private final AppUserDAO appUserDAO;
 	private final UserInfo userInfo;
-	private final KeyboardFactory keyboardFactory;
 	private final MessageUtils messageUtils;
 
 	private Map<String, MainCommand> commandToEnumMapping = new HashMap<>();
 
-	private static final String START_COMMAND = "/start";
-	private static final String MENU_WORKS = "menu.works.name";
-	private static final String MENU_MATERIALS = "menu.materials.name";
-	private static final String MENU_HELP = "menu.help.name";
-	private static final String MENU_SETTINGS = "menu.settings.name";
+	private final MainMenu mainMenu;
+	private final HelpMenu helpMenu;
+	private final SettingsMenu settingsMenu;
 
-	private static final String MESSAGE_WELCOME = "message.welcome.name";
-	private static final String MESSAGE_WORKS = "message.works.name";
-	private static final String MESSAGE_MATERIALS = "message.materials.name";
-	private static final String MESSAGE_HELP = "message.help.name";
-	private static final String MESSAGE_SETTINGS = "message.settings.name";
-	private static final String MESSAGE_UNKNOWN_COMMAND = "message.unknownCommand";
+	private final FacultyPage facultyPage;
+	private final SpecializationPage specializationPage;
+	private final SemesterPage semesterPage;
+	private final SubjectPage subjectPage;
+	private final SoftwarePage softwarePage;
+
+	private final String START_COMMAND = "/start";
+	private final String MENU_WORKS = "menu.works.name";
+	private final String MENU_SOFTWARE = "menu.software.name";
+	private final String MENU_HELP = "menu.help.name";
+	private final String MENU_SETTINGS = "menu.settings.name";
+
+	private final String MESSAGE_WELCOME = "message.welcome.name";
+	private final String MESSAGE_SOFTWARE = "message.software.name";
+	private final String MESSAGE_HELP = "message.help.name";
+	private final String MESSAGE_SETTINGS = "message.settings.name";
+	private final String MESSAGE_UNKNOWN_COMMAND = "message.unknownCommand";
+
+	private final String MESSAGE_PICK_SUBJECT = "message.pick.subject";
+	private final String MESSAGE_PICK_FACULTY = "message.pick.faculty";
+	private final String MESSAGE_PICK_SPECIALIZATION = "message.pick.specialization";
+	private final String MESSAGE_PICK_SEMESTER = "message.pick.semester";
 
 	@Override
 	public SendMessage handle(Update update) {
@@ -57,7 +77,7 @@ public class ProcessMainState implements ProcessMessageByUserState {
 			response = handleCommand(update, mainCommand, language);
 		} else {
 			response = messageUtils.createSendMessageWithAnswerCode(update, MESSAGE_UNKNOWN_COMMAND);
-			response.setReplyMarkup(keyboardFactory.createMainMenuKeyboard(language));
+			response.setReplyMarkup(mainMenu.createMainMenuKeyboard(language));
 		}
 
 		return response;
@@ -71,37 +91,63 @@ public class ProcessMainState implements ProcessMessageByUserState {
 
 		case START:
 			response = messageUtils.createSendMessageWithAnswerCode(update, MESSAGE_WELCOME);
-			response.setReplyMarkup(keyboardFactory.createMainMenuKeyboard(language));
+			response.setReplyMarkup(mainMenu.createMainMenuKeyboard(language));
 			break;
 
 		case WORKS:
-			response = messageUtils.createSendMessageWithAnswerCode(update, MESSAGE_WORKS);
-			response.setReplyMarkup(keyboardFactory.createWorksMenuKeyboard(language));
-			setNewState(update, UserState.WORKS_STATE);
+			if (userInfo.isUserFacultySet(chatId)) {
+				response = messageUtils.createSendMessageWithAnswerCode(update, MESSAGE_PICK_FACULTY);
+				response.setReplyMarkup(facultyPage.createFacultyPage(language));
+			}
+
+			else if (userInfo.isUserSpecializationSet(chatId)) {
+				String faculty = userInfo.getUserFaculty(chatId);
+				response = messageUtils.createSendMessageWithAnswerCode(update, MESSAGE_PICK_SPECIALIZATION);
+				response.setReplyMarkup(specializationPage.createSpecializationPage(faculty, language));
+			}
+
+			else if (userInfo.isUserSemesterSet(chatId)) {
+				response = messageUtils.createSendMessageWithAnswerCode(update, MESSAGE_PICK_SEMESTER);
+				response.setReplyMarkup(semesterPage.createSemesterPage(language));
+			}
+
+			else {
+				response = messageUtils.createSendMessageWithAnswerCode(update, MESSAGE_PICK_SUBJECT);
+
+				response.setReplyMarkup(subjectPage.createSubjectPage(userInfo.getUserFaculty(chatId),
+						userInfo.getUserSpecialization(chatId), userInfo.getUserSemester(chatId), language));
+
+				var user = appUserDAO.findUserByTelegramUserId(update.getMessage().getFrom().getId());
+				user.setCurrentActiveMessageId(String.valueOf(update.getMessage().getMessageId() + 1));
+				appUserDAO.save(user);
+			}
+
 			break;
 
-		case MATERIALS:
-			response = messageUtils.createSendMessageWithAnswerCode(update, MESSAGE_MATERIALS);
-			response.setReplyMarkup(keyboardFactory.createMaterialsMenuKeyboard(language));
-			setNewState(update, UserState.MATERIALS_STATE);
+		case SOFTWARE:
+			response = messageUtils.createSendMessageWithAnswerCode(update, MESSAGE_SOFTWARE);
+			response.setReplyMarkup(softwarePage.createSoftwarePage());
+			
+			var user = appUserDAO.findUserByTelegramUserId(update.getMessage().getFrom().getId());
+			user.setCurrentActiveMessageId(String.valueOf(update.getMessage().getMessageId() + 1));
+			appUserDAO.save(user);
 			break;
 
 		case HELP:
 			response = messageUtils.createSendMessageWithAnswerCode(update, MESSAGE_HELP);
-			response.setReplyMarkup(keyboardFactory.createHelpMenuKeyboard(language));
+			response.setReplyMarkup(helpMenu.createHelpMenuKeyboard(language));
 			setNewState(update, UserState.HELP_STATE);
 			break;
 
 		case SETTINGS:
 			response = messageUtils.createSendMessageWithAnswerCode(update, MESSAGE_SETTINGS);
-			response.setReplyMarkup(
-					keyboardFactory.createSettingsMenuKeyboard(userInfo.isUserDataSet(chatId), language));
+			response.setReplyMarkup(settingsMenu.createSettingsMenuKeyboard(userInfo.isUserDataSet(chatId), language));
 			setNewState(update, UserState.SETTINGS_STATE);
 			break;
 
 		default:
 			response = messageUtils.createSendMessageWithAnswerCode(update, MESSAGE_UNKNOWN_COMMAND);
-			response.setReplyMarkup(keyboardFactory.createMainMenuKeyboard(language));
+			response.setReplyMarkup(mainMenu.createMainMenuKeyboard(language));
 		}
 
 		return response;
@@ -110,7 +156,7 @@ public class ProcessMainState implements ProcessMessageByUserState {
 	private void initMap(String language) {
 		commandToEnumMapping.put(START_COMMAND, MainCommand.START);
 		commandToEnumMapping.put(messageUtils.getAnswerTextByCode(MENU_WORKS, language), MainCommand.WORKS);
-		commandToEnumMapping.put(messageUtils.getAnswerTextByCode(MENU_MATERIALS, language), MainCommand.MATERIALS);
+		commandToEnumMapping.put(messageUtils.getAnswerTextByCode(MENU_SOFTWARE, language), MainCommand.SOFTWARE);
 		commandToEnumMapping.put(messageUtils.getAnswerTextByCode(MENU_HELP, language), MainCommand.HELP);
 		commandToEnumMapping.put(messageUtils.getAnswerTextByCode(MENU_SETTINGS, language), MainCommand.SETTINGS);
 	}
