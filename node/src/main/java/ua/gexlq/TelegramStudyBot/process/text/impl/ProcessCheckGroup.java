@@ -53,19 +53,47 @@ public class ProcessCheckGroup {
 
 		long currentMessageId = update.getMessage().getMessageId();
 
-		boolean fileIsCorrect = messageText.equals("+") ? true : false;
-
 		appData.setFileState(FileState.NO_FILE_IN_QUEUE);
 		appDataDAO.save(appData);
 
-		if (fileIsCorrect) {
+		return processFile(messageText, currentMessageId);
+	}
+
+	private ForwardMessage processFile(String messageText, long currentMessageId) {
+		if (messageText.equals("+")) {
 			buildAppDocument();
 			return createForwardMessageToFolder(currentMessageId);
-		} else {
-			permissionsService.addNewWarning(update);
+		}
+
+		else if (messageText.equals("-")) {
+			addWarningToUser();
 			throw new CheckGroupException("File with messageId: " + currentMessageId + " is not correct");
 		}
 
+		// double warnings
+		else if (messageText.equals("—")) {
+			addWarningToUser();
+			addWarningToUser();
+			throw new CheckGroupException("File with messageId: " + currentMessageId + " is not correct");
+		}
+
+		else {
+			throw new CheckGroupException("File with messageId: " + currentMessageId + " is not correct");
+		}
+	}
+
+	private void addWarningToUser() {
+		var appData = appDataDAO.getAppData();
+
+		long fileOnCheck = appData.getFileOnCheck();
+
+		var document = downloadedFileDAO.findDownloadedFileById(fileOnCheck);
+
+		var documentMetadata = document.getDocumentMetadata();
+
+		long author = documentMetadata.getAuthorId();
+
+		permissionsService.addNewWarning(author);
 	}
 
 	private ForwardMessage createForwardMessageToFolder(long currentMessageId) {

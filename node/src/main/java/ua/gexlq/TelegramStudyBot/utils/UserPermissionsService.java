@@ -21,11 +21,26 @@ public class UserPermissionsService {
 		var newPermissions = user.getPermissions();
 
 		int newNumWarnings = newPermissions.getWarnings() + 1;
-		
+
 		if (newNumWarnings >= appDataDAO.getAppData().getMaxWarningsBeforeBan()) {
 			newPermissions.setTrusted(false);
 		}
-		
+
+		newPermissions.setWarnings(newNumWarnings);
+		user.setPermissions(newPermissions);
+		appUserDAO.save(user);
+	}
+
+	public void addNewWarning(long chatId) {
+		var user = getAppUserByChatId(chatId);
+		var newPermissions = user.getPermissions();
+
+		int newNumWarnings = newPermissions.getWarnings() + 1;
+
+		if (newNumWarnings >= appDataDAO.getAppData().getMaxWarningsBeforeBan()) {
+			newPermissions.setTrusted(false);
+		}
+
 		newPermissions.setWarnings(newNumWarnings);
 		user.setPermissions(newPermissions);
 		appUserDAO.save(user);
@@ -37,7 +52,7 @@ public class UserPermissionsService {
 		userPermissions.setUploadedFilesToday(userPermissions.getUploadedFilesToday() + 1);
 		return appUserDAO.save(user);
 	}
-	
+
 	public AppUser addNewContact(Update update) {
 		var user = appUserDAO.findUserByTelegramUserId(update.getMessage().getChatId());
 		var userPermissions = user.getPermissions();
@@ -74,5 +89,9 @@ public class UserPermissionsService {
 			telegramUser = update.getCallbackQuery().getFrom();
 
 		return appUserDAO.findUserByTelegramUserId(telegramUser.getId());
+	}
+
+	private AppUser getAppUserByChatId(long chatId) {
+		return appUserDAO.findUserByTelegramUserId(chatId);
 	}
 }
