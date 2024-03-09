@@ -15,6 +15,7 @@ import ua.gexlq.TelegramStudyBot.entity.AppDocument;
 import ua.gexlq.TelegramStudyBot.entity.enums.FileState;
 import ua.gexlq.TelegramStudyBot.exceptions.CheckGroupException;
 import ua.gexlq.TelegramStudyBot.utils.MessageUtils;
+import ua.gexlq.TelegramStudyBot.utils.UserPermissionsService;
 
 @RequiredArgsConstructor
 @Component
@@ -24,6 +25,7 @@ public class ProcessCheckGroup {
 	private final AppDataDAO appDataDAO;
 	private final AppDocumentDAO appDocumentDAO;
 	private final DownloadedFileDAO downloadedFileDAO;
+	private final UserPermissionsService permissionsService;
 
 	// Utilities
 	private final MessageUtils messageUtils;
@@ -44,7 +46,7 @@ public class ProcessCheckGroup {
 		var appData = appDataDAO.getAppData();
 
 		if (appData.getFileState().equals(FileState.NO_FILE_IN_QUEUE)) {
-			throw new CheckGroupException("File not found for check");
+			throw new CheckGroupException("File not found in check queue");
 		}
 
 		String messageText = update.getMessage().getText();
@@ -60,6 +62,7 @@ public class ProcessCheckGroup {
 			buildAppDocument();
 			return createForwardMessageToFolder(currentMessageId);
 		} else {
+			permissionsService.addNewWarning(update);
 			throw new CheckGroupException("File with messageId: " + currentMessageId + " is not correct");
 		}
 
@@ -71,7 +74,6 @@ public class ProcessCheckGroup {
 				checkedFileMessageId);
 	}
 
-	// TODO find new way to enter lastDocumentId
 	private AppDocument buildAppDocument() {
 		var appData = appDataDAO.getAppData();
 		long fileOnCheck = appData.getFileOnCheck();
@@ -79,21 +81,27 @@ public class ProcessCheckGroup {
 		var document = downloadedFileDAO.findDownloadedFileById(fileOnCheck);
 		var documentMetadata = document.getDocumentMetadata();
 
-		long messageId;
-		var lastDocumentId = appDocumentDAO.findLastDocument();
-
-		if (lastDocumentId == null) {
-			var scan = new Scanner(System.in);
-			System.out.println("Enter last messageId in DOCUMENT FOLDER: ");
-			messageId = scan.nextLong();
-			scan.close();
-
-		} else {
-			messageId = appDocumentDAO.findLastDocument().getMessageIdInFolder() + 1;
-		}
+		long messageId = getLastMessageIdInFolderChat();
 
 		var appDocument = AppDocument.builder().documentMetadata(documentMetadata).messageIdInFolder(messageId).build();
 
 		return appDocumentDAO.save(appDocument);
+	}
+
+	private long getLastMessageIdInFolderChat() {
+		long messageId;
+		var lastDocument = appDocumentDAO.findLastDocument();
+
+		if (lastDocument == null) {
+			var scan = new Scanner(System.in);
+			System.out.println("Enter LAST_MESSAGE_ID in your 'document folder' CHAT: ");
+			messageId = scan.nextLong();
+			scan.close();
+		}
+
+		else {
+			messageId = lastDocument.getMessageIdInFolder() + 1;
+		}
+		return messageId;
 	}
 }
