@@ -74,7 +74,7 @@ public class TelegramBot extends TelegramLongPollingBot {
 			var lastDownloadedFile = downloadedFileDAO.findLastDownloadedFile();
 			if (lastDownloadedFile == null) {
 				var scan = new Scanner(System.in);
-				System.out.println("Enter LAST messageId in your 'temp folder' GROUP: ");
+				System.out.println("Enter LAST_MESSAGE_ID in your 'temp folder' CHAT: ");
 				nextTempId = scan.nextLong() + 1;
 				scan.close();
 

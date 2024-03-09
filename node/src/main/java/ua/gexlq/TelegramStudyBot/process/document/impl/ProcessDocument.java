@@ -7,7 +7,8 @@ import lombok.RequiredArgsConstructor;
 import ua.gexlq.TelegramStudyBot.entity.DownloadedFile;
 import ua.gexlq.TelegramStudyBot.exceptions.DocumentServiceException;
 import ua.gexlq.TelegramStudyBot.exceptions.UnsafeFileException;
-import ua.gexlq.TelegramStudyBot.service.FileService;
+import ua.gexlq.TelegramStudyBot.file.FileChecker;
+import ua.gexlq.TelegramStudyBot.service.FileDownloader;
 import ua.gexlq.TelegramStudyBot.utils.UserPermissionsService;
 
 @RequiredArgsConstructor
@@ -16,15 +17,16 @@ public class ProcessDocument {
 
 	private final UserPermissionsService permissionsService;
 
-	private final FileService fileService;
+	private final FileDownloader fileDownloader;
+	private final FileChecker fileChecker;
 
 	public DownloadedFile handle(Update update) {
-		var downloadedDocument = fileService.downloadDocument(update);
+		var downloadedDocument = fileDownloader.downloadDocument(update);
 		permissionsService.addNewUpload(update);
 
 		String filePath = downloadedDocument.getFilePath();
 
-		boolean isSafe = fileService.isFileSafe(filePath);
+		boolean isSafe = fileChecker.isFileSafe(filePath);
 		permissionsService.setFileUploadPermission(update, false);
 
 		if (isSafe) {
@@ -34,7 +36,7 @@ public class ProcessDocument {
 		else {
 			handleUnsafeFile(update);
 		}
-		
+
 		throw new DocumentServiceException("Something went wrong");
 	}
 

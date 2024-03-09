@@ -12,7 +12,7 @@ import ua.gexlq.TelegramStudyBot.process.callbackQuery.enums.CallBackDataTypes;
 import ua.gexlq.TelegramStudyBot.utils.MessageUtils;
 
 @Component
-public class ChangeDataPage extends InlineKeyboardFactory{
+public class ChangeDataPage extends InlineKeyboardFactory {
 	
 	public ChangeDataPage(MessageUtils messageUtils) {
 		super(messageUtils);
