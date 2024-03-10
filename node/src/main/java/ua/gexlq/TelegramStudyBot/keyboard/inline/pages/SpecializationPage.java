@@ -1,6 +1,7 @@
 package ua.gexlq.TelegramStudyBot.keyboard.inline.pages;
 
 import java.util.ArrayList;
+
 import java.util.List;
 
 import org.springframework.stereotype.Component;
@@ -8,14 +9,14 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 
 import ua.gexlq.TelegramStudyBot.keyboard.inline.InlineKeyboardFactory;
 import ua.gexlq.TelegramStudyBot.process.callbackQuery.enums.CallBackDataTypes;
-import ua.gexlq.TelegramStudyBot.utils.MessageUtils;
+import ua.gexlq.TelegramStudyBot.utils.MessageLoader;
 
 @Component
 public class SpecializationPage extends InlineKeyboardFactory{
 
 	
-	public SpecializationPage(MessageUtils messageUtils) {
-		super(messageUtils);
+	public SpecializationPage(MessageLoader messageLoader) {
+		super(messageLoader);
 	}
 
 	// MAIN MENU -> WORK MENU -> CHOOSE SUBJECT [FIRST LAUNCH] 

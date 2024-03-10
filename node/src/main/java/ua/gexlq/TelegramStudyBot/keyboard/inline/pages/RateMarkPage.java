@@ -8,13 +8,13 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 
 import ua.gexlq.TelegramStudyBot.keyboard.inline.InlineKeyboardFactory;
 import ua.gexlq.TelegramStudyBot.process.callbackQuery.enums.CallBackDataTypes;
-import ua.gexlq.TelegramStudyBot.utils.MessageUtils;
+import ua.gexlq.TelegramStudyBot.utils.MessageLoader;
 
 @Component
 public class RateMarkPage extends InlineKeyboardFactory{
 	
-	public RateMarkPage(MessageUtils messageUtils) {
-		super(messageUtils);
+	public RateMarkPage(MessageLoader messageLoader) {
+		super(messageLoader);
 	}
 
 	public InlineKeyboardMarkup createRateMarkPage() {

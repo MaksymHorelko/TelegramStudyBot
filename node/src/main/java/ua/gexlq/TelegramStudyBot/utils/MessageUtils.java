@@ -7,8 +7,10 @@ import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageTe
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import ua.gexlq.TelegramStudyBot.entity.enums.Languages;
 
+@Slf4j
 @RequiredArgsConstructor
 @Component
 public class MessageUtils {
@@ -90,8 +92,11 @@ public class MessageUtils {
 	public String getAnswerTextByCode(String messageCode, String language) {
 		return loader.getTextByCode(messageCode, language);
 	}
-	
+
 	public String getAnswerTextByCode(String messageCode, Languages language) {
-		return loader.getTextByCode(messageCode, language.toString());
+		String text = loader.getTextByCode(messageCode, language.toString());
+		if (text.equals("error"))
+			log.error("No text by code: " + messageCode);
+		return text;
 	}
 }

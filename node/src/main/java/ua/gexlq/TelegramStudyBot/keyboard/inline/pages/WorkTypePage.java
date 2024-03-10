@@ -9,13 +9,13 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 
 import ua.gexlq.TelegramStudyBot.keyboard.inline.InlineKeyboardFactory;
 import ua.gexlq.TelegramStudyBot.process.callbackQuery.enums.CallBackDataTypes;
-import ua.gexlq.TelegramStudyBot.utils.MessageUtils;
+import ua.gexlq.TelegramStudyBot.utils.MessageLoader;
 
 @Component
 public class WorkTypePage extends InlineKeyboardFactory {
 
-	public WorkTypePage(MessageUtils messageUtils) {
-		super(messageUtils);
+	public WorkTypePage(MessageLoader messageLoader) {
+		super(messageLoader);
 	}
 
 	// MAIN MENU -> WORK MENU -> CHOOSE SUBJECT-> CHOOSE WORKTYPE (TEST, LAB,
@@ -28,7 +28,7 @@ public class WorkTypePage extends InlineKeyboardFactory {
 		List<String> categoryCallBackData = new ArrayList<>();
 
 		for (String code : codeToCategory) {
-			if(messageUtils.getAnswerTextByCode("works."+subject + "." + code, defaultLanguage).equals("error"))
+			if(getButtonTextByCode("works."+subject + "." + code, language).equals("error"))
 				continue;
 			categoryName.add(getButtonTextByCode(base + code + ".name", language));
 			categoryCallBackData.add(CallBackDataTypes.SELECT_WORK_TYPE + POINTER + subject + "." + code);

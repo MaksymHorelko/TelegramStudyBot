@@ -8,13 +8,13 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 
 import ua.gexlq.TelegramStudyBot.keyboard.inline.InlineKeyboardFactory;
 import ua.gexlq.TelegramStudyBot.process.callbackQuery.enums.CallBackDataTypes;
-import ua.gexlq.TelegramStudyBot.utils.MessageUtils;
+import ua.gexlq.TelegramStudyBot.utils.MessageLoader;
 
 @Component
 public class WorkPage extends InlineKeyboardFactory {
 
-	public WorkPage(MessageUtils messageUtils) {
-		super(messageUtils);
+	public WorkPage(MessageLoader messageLoader) {
+		super(messageLoader);
 	}
 
 	// MAIN MENU -> WORK MENU -> CHOOSE SUBJECT -> CHOOSE WORKTYPE -> CHOOSE WORK
@@ -23,11 +23,10 @@ public class WorkPage extends InlineKeyboardFactory {
 		List<String> workNames = new ArrayList<>();
 		List<String> callBackData = new ArrayList<>();
 
-		String workTypeName = messageUtils.getAnswerTextByCode("workTypes" + "." + workType + "." + "abbr", language);
+		String workTypeName = getButtonTextByCode("workTypes" + "." + workType + "." + "abbr", language);
 
 		try {
-			int countWorks = Integer
-					.parseInt(messageUtils.getAnswerTextByCode("works." + subject + "." + workType, language));
+			int countWorks = Integer.parseInt(getButtonTextByCode("works." + subject + "." + workType, language));
 
 			for (int i = 1; i <= countWorks; i++) {
 				workNames.add(workTypeName + " " + i);

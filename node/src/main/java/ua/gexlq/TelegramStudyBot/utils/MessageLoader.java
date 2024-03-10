@@ -3,12 +3,9 @@ package ua.gexlq.TelegramStudyBot.utils;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
 
-import lombok.extern.slf4j.Slf4j;
-
 import java.io.InputStream;
 import java.util.Map;
 
-@Slf4j
 @Component
 public class MessageLoader {
 
@@ -26,16 +23,12 @@ public class MessageLoader {
 		data = yaml.load(inputStream);
 	}
 
-	// TODO add exception
 	public String getTextByCode(String code, String language) {
 		loadData(language);
 
 		String[] keys = code.split("\\.");
 
 		String text = getValueFromMap(data, keys, 0);
-
-		if (text.equals("error"))
-			log.error("No text by code: " + code);
 
 		return text;
 	}

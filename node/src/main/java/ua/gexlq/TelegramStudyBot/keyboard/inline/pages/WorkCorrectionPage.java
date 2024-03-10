@@ -8,13 +8,13 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 
 import ua.gexlq.TelegramStudyBot.keyboard.inline.InlineKeyboardFactory;
 import ua.gexlq.TelegramStudyBot.process.callbackQuery.enums.CallBackDataTypes;
-import ua.gexlq.TelegramStudyBot.utils.MessageUtils;
+import ua.gexlq.TelegramStudyBot.utils.MessageLoader;
 
 @Component
 public class WorkCorrectionPage extends InlineKeyboardFactory {
 
-	public WorkCorrectionPage(MessageUtils messageUtils) {
-		super(messageUtils);
+	public WorkCorrectionPage(MessageLoader messageLoader) {
+		super(messageLoader);
 	}
 
 	// MAIN MENU -> WORK MENU -> SELECT WORK -> CORRECTION PAGE

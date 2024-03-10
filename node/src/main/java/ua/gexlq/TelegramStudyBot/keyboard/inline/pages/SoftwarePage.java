@@ -10,15 +10,15 @@ import ua.gexlq.TelegramStudyBot.dao.AppSoftwareDAO;
 import ua.gexlq.TelegramStudyBot.entity.AppSoftware;
 import ua.gexlq.TelegramStudyBot.keyboard.inline.InlineKeyboardFactory;
 import ua.gexlq.TelegramStudyBot.process.callbackQuery.enums.CallBackDataTypes;
-import ua.gexlq.TelegramStudyBot.utils.MessageUtils;
+import ua.gexlq.TelegramStudyBot.utils.MessageLoader;
 
 @Component
 public class SoftwarePage extends InlineKeyboardFactory {
 
 	private final AppSoftwareDAO appSoftwareDAO;
 
-	public SoftwarePage(MessageUtils messageUtils, AppSoftwareDAO appSoftwareDAO) {
-		super(messageUtils);
+	public SoftwarePage(MessageLoader messageLoader, AppSoftwareDAO appSoftwareDAO) {
+		super(messageLoader);
 		this.appSoftwareDAO = appSoftwareDAO;
 	}
 

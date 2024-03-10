@@ -8,13 +8,13 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 
 import ua.gexlq.TelegramStudyBot.keyboard.inline.InlineKeyboardFactory;
 import ua.gexlq.TelegramStudyBot.process.callbackQuery.enums.CallBackDataTypes;
-import ua.gexlq.TelegramStudyBot.utils.MessageUtils;
+import ua.gexlq.TelegramStudyBot.utils.MessageLoader;
 
 @Component
 public class SubjectPage extends InlineKeyboardFactory {
 
-	public SubjectPage(MessageUtils messageUtils) {
-		super(messageUtils);
+	public SubjectPage(MessageLoader messageLoader) {
+		super(messageLoader);
 	}
 
 	// MAIN MENU -> WORK MENU -> CHOOSE SUBJECT

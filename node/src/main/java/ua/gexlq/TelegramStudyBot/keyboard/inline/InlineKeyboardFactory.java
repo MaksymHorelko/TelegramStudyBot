@@ -10,29 +10,29 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 
 import lombok.RequiredArgsConstructor;
 import ua.gexlq.TelegramStudyBot.entity.enums.Languages;
-import ua.gexlq.TelegramStudyBot.utils.MessageUtils;
+import ua.gexlq.TelegramStudyBot.utils.MessageLoader;
 
 @RequiredArgsConstructor
 @Component
 public abstract class InlineKeyboardFactory {
 
-	protected final MessageUtils messageUtils;
+	protected final MessageLoader messageLoader;
 
 	protected final int maxSemesters = 10;
-	
+
 	protected final int maxVariants = 31;
-	
+
 	protected String nextButtonCallBackData;
-	
+
 	protected String backButtonCallBackData;
-	
+
 	protected Languages defaultLanguage = Languages.UKRANIAN;
 
 	protected final String POINTER = "->";
 
 	// Common method to get text by code
 	protected String getButtonTextByCode(String code, String language) {
-		return messageUtils.getAnswerTextByCode(code, language);
+		return messageLoader.getTextByCode(code, language);
 	}
 
 	// Common method to create button
@@ -65,7 +65,7 @@ public abstract class InlineKeyboardFactory {
 		return row;
 	}
 
-	// Common method to create page 
+	// Common method to create page
 	protected InlineKeyboardMarkup createPage(List<String> names, List<String> callbackData, String language,
 			boolean nextButton, boolean backButton) {
 		InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
@@ -101,7 +101,7 @@ public abstract class InlineKeyboardFactory {
 		int i = 1;
 		while (!end) {
 			code = base + "." + i;
-			if (messageUtils.getAnswerTextByCode(code, defaultLanguage.toString()).equals("error")) {
+			if (getButtonTextByCode(code, defaultLanguage.toString()).equals("error")) {
 				end = true;
 			} else {
 				list.add(code);
