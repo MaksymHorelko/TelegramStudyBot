@@ -1,23 +1,18 @@
 package ua.gexlq.TelegramStudyBot.cotroller;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.ForwardMessage;
-import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
-import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import ua.gexlq.TelegramStudyBot.entity.DownloadedFile;
 import ua.gexlq.TelegramStudyBot.service.UpdateProducer;
+import ua.gexlq.TelegramStudyBot.service.impl.DocumentService;
 
 import static ua.gexlq.TelegramStudyBot.model.RabbitQueue.TEXT_MESSAGE_UPDATE;
-
-import java.io.File;
-
 import static ua.gexlq.TelegramStudyBot.model.RabbitQueue.DOC_MESSAGE_UPDATE;
 import static ua.gexlq.TelegramStudyBot.model.RabbitQueue.CALLBACKQUERY_MESSAGE_UPDATE;
 
@@ -27,11 +22,8 @@ import static ua.gexlq.TelegramStudyBot.model.RabbitQueue.CALLBACKQUERY_MESSAGE_
 public class UpdateController {
 
 	private final UpdateProducer updateProducer;
-
+	private final DocumentService documentService;
 	private TelegramBot telegramBot;
-
-	@Value("${folder.tempGroupId}")
-	private String tempFolder;
 
 	public void registerBot(TelegramBot telegramBot) {
 		this.telegramBot = telegramBot;
@@ -78,16 +70,7 @@ public class UpdateController {
 	}
 
 	public void setView(DownloadedFile file) {
-		String filePath = file.getFilePath();
-
-		var sendDocument = new SendDocument();
-
-		sendDocument.setChatId(tempFolder);
-
-		InputFile inputFile = new InputFile(new File(filePath));
-		sendDocument.setDocument(inputFile);
-
-		telegramBot.sendAnswer(sendDocument, file);
+		telegramBot.sendAnswer(documentService.createSendDocument(file));
 	}
 
 	private void processTextMessage(Update update) {

@@ -108,7 +108,7 @@ public class ProcessMainState implements ProcessMessageByUserState {
 
 			else if (userInfo.isUserSemesterSet(chatId)) {
 				response = messageUtils.createSendMessageWithAnswerCode(update, MESSAGE_PICK_SEMESTER);
-				response.setReplyMarkup(semesterPage.createSemesterPage(language));
+				response.setReplyMarkup(semesterPage.createSemesterPage());
 			}
 
 			else {

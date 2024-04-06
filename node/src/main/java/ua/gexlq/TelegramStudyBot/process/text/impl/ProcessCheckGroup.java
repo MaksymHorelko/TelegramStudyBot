@@ -70,7 +70,7 @@ public class ProcessCheckGroup {
 			throw new CheckGroupException("File with messageId: " + currentMessageId + " is not correct");
 		}
 
-		// double warnings
+		// double warning
 		else if (messageText.equals("—")) {
 			addWarningToUser();
 			addWarningToUser();

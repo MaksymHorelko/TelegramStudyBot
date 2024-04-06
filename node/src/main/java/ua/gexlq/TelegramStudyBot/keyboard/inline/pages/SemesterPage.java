@@ -12,14 +12,14 @@ import ua.gexlq.TelegramStudyBot.utils.MessageLoader;
 
 @Component
 public class SemesterPage extends InlineKeyboardFactory {
-	
+
 	public SemesterPage(MessageLoader messageLoader) {
 		super(messageLoader);
 	}
 
 	// MAIN MENU -> WORK MENU -> CHOOSE SUBJECT [FIRST LAUNCH] || MAIN MENU ->
 	// SETTINGS MENU -> CHANGE DATA -> CHANGE SEMESTER
-	public InlineKeyboardMarkup createSemesterPage(String language) {
+	public InlineKeyboardMarkup createSemesterPage() {
 		List<String> semesterName = new ArrayList<>();
 		List<String> semesterCallBackData = new ArrayList<>();
 
@@ -29,6 +29,6 @@ public class SemesterPage extends InlineKeyboardFactory {
 		for (String semester : semesterName)
 			semesterCallBackData.add(CallBackDataTypes.SET_USER_SEMESTER_TO + POINTER + semester);
 
-		return createPage(semesterName, semesterCallBackData, language, false, false);
+		return createPage(semesterName, semesterCallBackData, defaultLanguage.toString(), false, false);
 	}
 }

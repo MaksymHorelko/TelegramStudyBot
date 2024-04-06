@@ -26,7 +26,7 @@ public class ProcessDownloadCallBackData implements ProcessCallBackDataByState {
 
 	private final DownloadFilePage downloadFilePage;
 
-	private final String MESSAGE_WORKS_NOW_WORKS_FOUND = "message.works.worksNotFound";
+	private final String MESSAGE_WORKS_NOW_WORKS_FOUND = "message.works.notFound";
 	private final String MESSAGE_PICK_WORK = "message.pick.work";
 
 	@Override
@@ -42,12 +42,13 @@ public class ProcessDownloadCallBackData implements ProcessCallBackDataByState {
 		List<AppDocument> appDocuments = appDocumentDAO.findDocumentByWorkCode(code);
 		int size = appDocuments.size();
 
-		if (size == 0)
+		if (size == 0) {
 			response = messageUtils.createEditMessageWithAnswerCode(update, MESSAGE_WORKS_NOW_WORKS_FOUND);
-		else
-			response = messageUtils.createEditMessageWithAnswerCode(update, MESSAGE_PICK_WORK);
-		response.setReplyMarkup(downloadFilePage.createPickDownloadFilePage(code, size, language));
 
+		} else {
+			response = messageUtils.createEditMessageWithAnswerCode(update, MESSAGE_PICK_WORK);
+			response.setReplyMarkup(downloadFilePage.createPickDownloadFilePage(code, language, size));
+		}
 		return response;
 	}
 

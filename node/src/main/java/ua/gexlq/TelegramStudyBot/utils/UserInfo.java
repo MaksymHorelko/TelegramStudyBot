@@ -72,7 +72,6 @@ public class UserInfo {
 		return getUserSemester(telegramUserId) == null;
 	}
 
-	// TODO what is this
 	public boolean isUserDataSet(long telegramUserId) {
 		return getUserSemester(telegramUserId) != null;
 	}

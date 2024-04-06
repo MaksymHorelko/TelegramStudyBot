@@ -29,7 +29,6 @@ public class ProcessSpecializationCallBackData implements ProcessCallBackDataByS
 	public EditMessageText handle(Update update) {
 		long chatId = update.getCallbackQuery().getMessage().getChatId();
 		String callBackData = update.getCallbackQuery().getData();
-		String language = userInfo.getUserLanguage(chatId);
 
 		EditMessageText response;
 		var user = appUserDAO.findUserByTelegramUserId(chatId);
@@ -42,7 +41,7 @@ public class ProcessSpecializationCallBackData implements ProcessCallBackDataByS
 
 		if (userInfo.isUserSemesterSet(chatId) && user.getUserState().equals(UserState.MAIN_STATE)) {
 			response = messageUtils.createEditMessageWithAnswerCode(update, PICK_SEMESTER);
-			response.setReplyMarkup(semesterPage.createSemesterPage(language));
+			response.setReplyMarkup(semesterPage.createSemesterPage());
 		} else {
 			response = messageUtils.createEditMessageWithAnswerCode(update, MESSAGE_SUCCESS);
 		}

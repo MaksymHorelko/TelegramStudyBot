@@ -49,7 +49,7 @@ public class ProcessChangeDataCallBackData implements ProcessCallBackDataByState
 
 		else if (isChangeSemester(update)) {
 			response = messageUtils.createEditMessageWithAnswerCode(update, MESSAGE_PICK_SEMESTER);
-			response.setReplyMarkup(semesterPage.createSemesterPage(language));
+			response.setReplyMarkup(semesterPage.createSemesterPage());
 		}
 
 		else {

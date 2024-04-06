@@ -3,10 +3,10 @@ package ua.gexlq.TelegramStudyBot.cotroller;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Scanner;
 
 import javax.annotation.PostConstruct;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.ForwardMessage;
@@ -19,8 +19,6 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import ua.gexlq.TelegramStudyBot.config.Config;
-import ua.gexlq.TelegramStudyBot.dao.DownloadedFileDAO;
-import ua.gexlq.TelegramStudyBot.entity.DownloadedFile;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -29,9 +27,10 @@ public class TelegramBot extends TelegramLongPollingBot {
 
 	private final UpdateController updateController;
 
-	private final DownloadedFileDAO downloadedFileDAO;
-
 	private final Config config;
+
+	@Value("${file.path}")
+	private String folderPath;
 
 	@PostConstruct
 	public void init() {
@@ -67,27 +66,14 @@ public class TelegramBot extends TelegramLongPollingBot {
 		}
 	}
 
-	public void sendAnswer(SendDocument sendDocument, DownloadedFile file) {
+	public void sendAnswer(SendDocument sendDocument) {
 		try {
-
-			long nextTempId;
-			var lastDownloadedFile = downloadedFileDAO.findLastDownloadedFile();
-			if (lastDownloadedFile == null) {
-				var scan = new Scanner(System.in);
-				System.out.println("Enter LAST_MESSAGE_ID in your 'temp folder' CHAT: ");
-				nextTempId = scan.nextLong() + 1;
-				scan.close();
-
-			} else {
-				nextTempId = lastDownloadedFile.getMessageIdInTemp() + 1;
-			}
-
-			file.setMessageIdInTemp(nextTempId);
-			downloadedFileDAO.save(file);
-
 			execute(sendDocument);
+			
+			String attachFileName = sendDocument.getDocument().getAttachName();
+			String filePath = folderPath + attachFileName.substring(attachFileName.lastIndexOf("/") + 1);
 
-			Path path = Paths.get(file.getFilePath());
+			Path path = Paths.get(filePath);
 			Files.delete(path);
 		} catch (Exception e) {
 			log.error(e.getMessage());
